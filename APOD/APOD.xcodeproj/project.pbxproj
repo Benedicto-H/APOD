@@ -22,6 +22,7 @@
 		931676E82C8DBC13001FAE70 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		931676EB2C8DBC13001FAE70 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		931676ED2C8DBC13001FAE70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		931676F42C8DC20A001FAE70 /* Secret.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secret.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +61,7 @@
 				931676E82C8DBC13001FAE70 /* Assets.xcassets */,
 				931676EA2C8DBC13001FAE70 /* LaunchScreen.storyboard */,
 				931676ED2C8DBC13001FAE70 /* Info.plist */,
+				931676F42C8DC20A001FAE70 /* Secret.xcconfig */,
 			);
 			path = APOD;
 			sourceTree = "<group>";
@@ -275,6 +277,7 @@
 		};
 		931676F12C8DBC13001FAE70 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 931676F42C8DC20A001FAE70 /* Secret.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
