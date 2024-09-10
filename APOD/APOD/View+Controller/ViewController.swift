@@ -50,7 +50,6 @@ class ViewController: UIViewController {
         let imageView: UIImageView = UIImageView()
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
-//        imageView.layer.cornerRadius = imageView.frame.width / 2
         
         return imageView
     }()
