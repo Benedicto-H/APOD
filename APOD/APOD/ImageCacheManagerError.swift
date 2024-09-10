@@ -8,11 +8,10 @@
 import Foundation
 
 // MARK: - 사용자 정의 ImageCacheManager Error 타입
-
 enum ImageCacheManagerError: Error {
     case invalidURL
     case imageCreationFailed
-    case dataLoadingFailed(Error)
+    case imageLoadingFailed(Error)
     
     var localizedDescription: String {
         switch self {
@@ -20,8 +19,8 @@ enum ImageCacheManagerError: Error {
             return "Invalid URL"
         case .imageCreationFailed:
             return "Image creation failed"
-        case .dataLoadingFailed(let error):
-            return "Data loading failed: \(error.localizedDescription)"
+        case .imageLoadingFailed(let error):
+            return "Image loading failed: \(error.localizedDescription)"
         }
     }
 }

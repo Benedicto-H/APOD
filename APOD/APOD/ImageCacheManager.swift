@@ -55,7 +55,7 @@ final class ImageCacheManager {
                 }
             } catch {
                 print(error.localizedDescription)
-                completion(.failure(.dataLoadingFailed(error)))
+                completion(.failure(.imageLoadingFailed(error)))
             }
         }
     }
