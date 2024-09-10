@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+// MARK: - Extension UIColor
 extension UIColor {
     /// 동적 텍스트 색상
     static let dynamicTextColor: UIColor = {

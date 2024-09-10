@@ -17,6 +17,8 @@
 		93D487D82C8EBF4E00AAB955 /* Bundle+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487D72C8EBF4E00AAB955 /* Bundle+.swift */; };
 		93D487DA2C8EBFC300AAB955 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487D92C8EBFC300AAB955 /* APIError.swift */; };
 		93D487DC2C8ED19000AAB955 /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DB2C8ED19000AAB955 /* UIColor+.swift */; };
+		93D487DE2C8ED75500AAB955 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DD2C8ED75500AAB955 /* ImageCacheManager.swift */; };
+		93D487E02C8EDBB900AAB955 /* ImageCacheManagerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +35,8 @@
 		93D487D72C8EBF4E00AAB955 /* Bundle+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+.swift"; sourceTree = "<group>"; };
 		93D487D92C8EBFC300AAB955 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		93D487DB2C8ED19000AAB955 /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
+		93D487DD2C8ED75500AAB955 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
+		93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManagerError.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +72,8 @@
 				931676DF2C8DBC11001FAE70 /* AppDelegate.swift */,
 				931676E12C8DBC11001FAE70 /* SceneDelegate.swift */,
 				931676E32C8DBC11001FAE70 /* ViewController.swift */,
+				93D487DD2C8ED75500AAB955 /* ImageCacheManager.swift */,
+				93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */,
 				93D487DB2C8ED19000AAB955 /* UIColor+.swift */,
 				93D487D32C8EBE3D00AAB955 /* Apod.swift */,
 				93D487D52C8EBEDB00AAB955 /* APICaller.swift */,
@@ -156,7 +162,9 @@
 				93D487D42C8EBE3D00AAB955 /* Apod.swift in Sources */,
 				931676E02C8DBC11001FAE70 /* AppDelegate.swift in Sources */,
 				93D487D82C8EBF4E00AAB955 /* Bundle+.swift in Sources */,
+				93D487DE2C8ED75500AAB955 /* ImageCacheManager.swift in Sources */,
 				93D487D62C8EBEDB00AAB955 /* APICaller.swift in Sources */,
+				93D487E02C8EDBB900AAB955 /* ImageCacheManagerError.swift in Sources */,
 				931676E22C8DBC11001FAE70 /* SceneDelegate.swift in Sources */,
 				93D487DA2C8EBFC300AAB955 /* APIError.swift in Sources */,
 			);

@@ -50,7 +50,7 @@ class ViewController: UIViewController {
         let imageView: UIImageView = UIImageView()
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.layer.cornerRadius = imageView.frame.width / 2
+//        imageView.layer.cornerRadius = imageView.frame.width / 2
         
         return imageView
     }()
@@ -120,6 +120,7 @@ class ViewController: UIViewController {
         button.titleLabel?.textAlignment = .center
         button.layer.cornerRadius = 5
         button.backgroundColor = .systemIndigo
+        button.addTarget(self, action: #selector(loadButtonPressed), for: .touchUpInside)
         
         return button
     }()
@@ -135,6 +136,7 @@ class ViewController: UIViewController {
         button.titleLabel?.textAlignment = .center
         button.layer.cornerRadius = 5
         button.backgroundColor = .systemGray
+        button.addTarget(self, action: #selector(clearButtonPressed), for: .touchUpInside)
         
         return button
     }()
@@ -170,34 +172,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        view.backgroundColor = .systemBackground
-        
         setupUI()
         applyConstraints()
     }
-    
-    /// View가 등장할 때, Model의 상태가 변경되었는지 확인하기 위해 `viewWillAppear()` 호출
-    /*
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         
-        DispatchQueue.global(qos: .background).async {
-            APICaller.shared.fetchApod { [weak self] result in
-                guard let self: ViewController = self else { return }
-                
-                switch result {
-                case .success(let apod):
-                    self.apod = apod
-                    break;
-                case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
-                    break;
-                }
-            }
-        }
-    }
-     */
-    
     // MARK: - Custom Methods (UI Setup, AutoLayout)
     /// Setup Views
     private func setupUI() -> Void {
@@ -205,7 +183,7 @@ class ViewController: UIViewController {
         view.backgroundColor = .systemBackground
         
         /// hStackView에 뷰 추가
-        [loadButton, clearButton, timeLabel].map { hStackView.addArrangedSubview($0) }
+        _ = [loadButton, clearButton, timeLabel].map { hStackView.addArrangedSubview($0) }
         
         /// scrollView에 뷰 추가
         scrollView.addSubview(contentView)
@@ -275,6 +253,81 @@ class ViewController: UIViewController {
         ])
         
         NSLayoutConstraint.activate(constraints)
+    }
+    
+    // MARK: - Actions (Event Handler)
+    /// loadButton Action
+    @objc private func loadButtonPressed() -> Void {
+        
+        activityIndicator.startAnimating()
+        
+        /// 시간초 증가 (타이머 시작)
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self: ViewController = self else { return }
+            
+            /// 0.1초마다 1씩 증가
+            self.count += 1
+            
+            DispatchQueue.main.async {
+                self.timeLabel.text = "Loading Time: \(self.count)"
+            }
+        }
+        
+        DispatchQueue.global(qos: .userInteractive).async {
+            APICaller.shared.fetchApod { [weak self] result in
+                /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
+                
+                guard let `self`: ViewController = self else { return }
+                /// weak self 사용으로 인해 self (ViewController) 가 옵셔널이 되므로, 옵셔널 바인딩을 통해 클로저 시작 시, self 에 대한 임시 강한 참조 생성
+                /// 즉, closure 내부에서 self (ViewController)가 유효한지 확인하는 과정
+                
+                switch result {
+                case .success(let apod):
+                    print("========== Successfully fetched data ========== \n\(apod) \n")
+                    self.apod = apod
+                    break;
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    break;
+                }
+                
+                /// fetchApod의 escaping closure로 데이터를 잘 받아왔다면 계속 진행, 아니면 return
+                guard let apod: Apod = self.apod else { return }
+                
+                ImageCacheManager.loadImage(from: self.apod?.url ?? "") { [weak self] result in
+                    guard let `self`: ViewController = self else { return }
+                    
+                    switch result {
+                    case .success(let image):
+                        /// UI 업데이트 및 타이머 중지
+                        self.apodImageView.image = image
+                        
+                        self.activityIndicator.stopAnimating()
+                        self.timer?.invalidate()
+                        self.timer = nil
+                        
+                        self.titleLabel.text = apod.title
+                        self.dateLabel.text = apod.date
+                        self.explanationLabel.text = apod.explanation
+                        break;
+                    case .failure(let error):
+                        print(error.localizedDescription)
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    /// clearButton Action
+    @objc private func clearButtonPressed() -> Void {
+        
+        count = 0
+        timeLabel.text = nil
+        apodImageView.image = nil
+        titleLabel.text = nil
+        dateLabel.text = nil
+        explanationLabel.text = nil
     }
 
 
