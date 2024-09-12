@@ -15,7 +15,7 @@ final class ImageCacheManager {
     private static let imageCache: NSCache<NSString, UIImage> = NSCache<NSString, UIImage>()
     
     /// for `Disk Cache`
-    static let diskCacheDirectory: URL = {
+    private static let diskCacheDirectory: URL = {
         /// 캐시 디렉토리 경로 설정
         guard let path: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
             fatalError("캐시 디렉토리를 찾을 수 없음.")

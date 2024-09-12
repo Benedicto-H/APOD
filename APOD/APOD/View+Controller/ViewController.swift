@@ -166,8 +166,6 @@ class ViewController: UIViewController {
         
         setupUI()
         applyConstraints()
-        
-        print(ImageCacheManager.diskCacheDirectory.absoluteString)
     }
     
     // MARK: - Custom Methods (UI Setup, AutoLayout)
