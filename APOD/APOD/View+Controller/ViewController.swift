@@ -10,19 +10,12 @@ import SwiftUI
 
 // MARK: - View+Controller
 class ViewController: UIViewController {
-
+    
     // MARK: - Properties
     /// Behavioral Pattern: `Observer`
     private var apod: Apod? {
-        /*
-        willSet {
-            print("willSet: \(String(describing: newValue)) \n")
-        }
-         */
-        
-        didSet {
-            print("DidSet: \(String(describing: oldValue)) \n")
-        }
+        willSet {}
+        didSet { print("DidSet: \(String(describing: oldValue)) \n") }
     }
     
     /// Counter
@@ -173,8 +166,10 @@ class ViewController: UIViewController {
         
         setupUI()
         applyConstraints()
-    }
         
+        print(ImageCacheManager.diskCacheDirectory.absoluteString)
+    }
+    
     // MARK: - Custom Methods (UI Setup, AutoLayout)
     /// Setup Views
     private func setupUI() -> Void {
@@ -298,16 +293,18 @@ class ViewController: UIViewController {
                     
                     switch result {
                     case .success(let image):
-                        /// UI 업데이트 및 타이머 중지
-                        self.apodImageView.image = image
-                        
-                        self.activityIndicator.stopAnimating()
-                        self.timer?.invalidate()
-                        self.timer = nil
-                        
-                        self.titleLabel.text = apod.title
-                        self.dateLabel.text = apod.date
-                        self.explanationLabel.text = apod.explanation
+                        DispatchQueue.main.async {
+                            /// UI 업데이트 및 타이머 중지
+                            self.apodImageView.image = image
+                            
+                            self.activityIndicator.stopAnimating()
+                            self.timer?.invalidate()
+                            self.timer = nil
+                            
+                            self.titleLabel.text = apod.title
+                            self.dateLabel.text = apod.date
+                            self.explanationLabel.text = apod.explanation
+                        }
                         break;
                     case .failure(let error):
                         print(error.localizedDescription)
