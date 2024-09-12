@@ -83,6 +83,17 @@
     > e.g. target-action의 event 처리, AutoLayout 등
     
   - View와 Controller는 의존관계로 강하게 결합됨.
+
+<br>
+
+- **Caching 처리의 문제점**
+  |Using Cache|
+  |:---:|
+  |<img src="https://github.com/user-attachments/assets/1a9d8b5f-7031-44d5-9b0a-b50d8bf55416">|
+
+  > 이미지 캐싱을 위해 사용한 NSCache는 **Memory Cache**로서, 앱이 사용중인 메모리의 일부분을 캐시 메모리로 사용하면서 앱이 백그라운드로 전환될 때, 시스템은 앱이 사용하는 메모리를 줄이기 위해 최적화를 수행한다.
+  > (-> 여기에는 NSCache에 저장된 이미지와 같은 객체도 포함된다.)
+
  
 <br>
 
