@@ -86,18 +86,59 @@
 
 <br>
 
-- **Caching 처리의 문제점**
+- **Caching 처리의 문제점** : _Caching의 문제를 Disk Caching을 통해 해결!_
   |Using Cache|
   |:---:|
   |<img src="https://github.com/user-attachments/assets/1a9d8b5f-7031-44d5-9b0a-b50d8bf55416">|
 
-  > 이미지 캐싱을 위해 사용한 NSCache는 **Memory Cache**로서, 앱이 사용중인 메모리의 일부분을 캐시 메모리로 사용하면서 앱이 백그라운드로 전환될 때, 시스템은 앱이 사용하는 메모리를 줄이기 위해 최적화를 수행한다.
-  > (-> 여기에는 NSCache에 저장된 이미지와 같은 객체도 포함된다.)
-
+  이미지 캐싱을 위해 사용한 NSCache는 **Memory Cache**로서, 앱이 사용중인 메모리의 일부분을 캐시 메모리로 사용하면서 앱이 백그라운드로 전환될 때, 시스템은 앱이 사용하는 메모리를 줄이기 위해 최적화를 수행한다.
+  > NSCache에 저장된 이미지와 같은 객체도 포함!
  
 <br>
 
 ## 💡 개선할 점
 - **Cocoa MVC의 문제점을 MVP -> MVVM의 순서로 리팩토링**
+  
 - **GCD to Swift Concurrency**
-- **디스크 캐싱 추가**
+  
+- **디스크 캐싱 추가 ✅**
+  |Using Memory Cache / Disk Cache|ImageCache Directory|
+  |:---:|:---:|
+  |<img src="https://github.com/user-attachments/assets/afd98a05-134e-4114-aab3-e88c88d39b09">|<img src="https://github.com/user-attachments/assets/41a23dbe-c8c3-4a47-99cf-a2058061f5d2">|
+
+  > NASA Open APIs의 APOD 데이터는 UTC-4 (Eastern Time) 00:00를 기준으로 업데이트 되기에, 캐시를 무효화하여 최신화 된 데이터 이외에는 모두 삭제되게 구현함으로써, 앱이 백그라운드 상태에서 foreground 상태로 변경될 때 디스크 캐시를 사용
+  >
+  > ref: [nasa/apod-api issue #26: Missing info: at what time "today's" image is created? ](https://github.com/nasa/apod-api/issues/26)
+
+  ```swift
+  // MARK: - ImageCacheManager
+  final class ImageCacheManager {
+    //  생략...
+
+    /// for `Disk Cache`
+    static let diskCacheDirectory: URL = {
+        /// 캐시 디렉토리 경로 설정
+        guard let path: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
+            fatalError("캐시 디렉토리를 찾을 수 없음.")
+        }
+
+        /// Caches의 ImageCache 서브폴더 생성
+        let directory: URL = URL(fileURLWithPath: path).appendingPathComponent("ImageCache")
+
+        /// 캐시 디렉토리가 없으면 생성
+        if (!FileManager.default.fileExists(atPath: directory.path)) {
+            do {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
+            } catch {
+                fatalError("디스크 캐시 디렉토리 생성 실패: \(error.localizedDescription)")
+            }
+        }
+
+        return directory
+    }()
+  }
+  ```
+
+  > FileManager를 통해 이미지를 file로 관리하면서 Caches 폴더의 서브폴더를 생성하여 이미지들을 관리
+  
+  - **Caching Flow**: _메모리 캐시로부터 데이터 확인 -> (실패) -> 디스크 캐시로부터 데이터 확인 -> (실패) -> API를 통해 얻은 데이터를 Memory Cache와 Disk Cache에 각각 추가_
