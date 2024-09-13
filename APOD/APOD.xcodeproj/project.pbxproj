@@ -74,13 +74,22 @@
 				931676DF2C8DBC11001FAE70 /* AppDelegate.swift */,
 				931676E12C8DBC11001FAE70 /* SceneDelegate.swift */,
 				93BAA1842C903D7D003884AC /* Model */,
-				93BAA1852C903D98003884AC /* View+Controller */,
+				93BAA1852C903D98003884AC /* View */,
+				935595742C9444C5004293FE /* Presenter */,
 				93BAA1882C903EC3003884AC /* Network */,
 				93BAA1892C903F75003884AC /* Utility */,
 				93BAA1872C903DC8003884AC /* Extensions */,
 				93BAA1862C903DB4003884AC /* Resources */,
 			);
 			path = APOD;
+			sourceTree = "<group>";
+		};
+		935595742C9444C5004293FE /* Presenter */ = {
+			isa = PBXGroup;
+			children = (
+				935595722C94422D004293FE /* Presenter.swift */,
+			);
+			path = Presenter;
 			sourceTree = "<group>";
 		};
 		93BAA1842C903D7D003884AC /* Model */ = {
@@ -91,13 +100,12 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
-		93BAA1852C903D98003884AC /* View+Controller */ = {
+		93BAA1852C903D98003884AC /* View */ = {
 			isa = PBXGroup;
 			children = (
 				931676E32C8DBC11001FAE70 /* ViewController.swift */,
-				935595722C94422D004293FE /* Presenter.swift */,
 			);
-			path = "View+Controller";
+			path = View;
 			sourceTree = "<group>";
 		};
 		93BAA1862C903DB4003884AC /* Resources */ = {

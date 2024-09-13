@@ -245,13 +245,11 @@ final class ViewController: UIViewController {
     /// `Presenter`에게 Input을 알림
     /// loadButton Action
     @objc private func loadButtonPressed() -> Void {
-        
         presenter?.didTapLoadButton()
     }
     
     /// clearButton Action
     @objc private func clearButtonPressed() -> Void {
-        
         presenter?.didTapClearButton()
     }
 
