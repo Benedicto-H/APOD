@@ -7,7 +7,7 @@
 <br>
 
 ## 📖 학습 포인트
-- MVP
+- Cocoa MVC -> **MVP**
 
 <br>
 
@@ -32,7 +32,7 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
   > Presenter = UI와는 관련이 없는, UI를 관리하는 요소
   <br>
   
-**MVP Flow**: _View가 이벤트를 받으면, 반드시 Presenter에게 알린다. Presenter는 Model과 소통하여 action에 대한 로직을 처리하고, View에게 그려야 될 요소들을 알려준다._
+**MVP Flow**: _View가 이벤트를 받으면 -> 반드시 Presenter에게 알림 -> Presenter는 Model과 소통하여 action에 대한 로직을 처리 -> View에게 그려야 될 요소들을 알려줌._
 > 이 때, Presenter가 View와 인터랙션하는 방법은 주로 protocol을 통해 알려준다.
 <br>
 
@@ -98,3 +98,14 @@ extension ViewController: PresenterDelegate {
     }
 }
 ```
+
+<br>
+
+## 💣 문제점
+- **View**와 **Presenter**의 관계
+  
+  <img src="https://github.com/user-attachments/assets/64c0cce7-eb04-4341-8f42-7395078319cf" width="50%" height="50%">
+  
+  - **View**와 **Presenter**가 **1:1 관계**로, View가 여러개라면 매번 Presenter를 만들어주어야 함! (-> 이 문제를 MVVM으로 해결할 수 있음)
+    
+    > 이미지 출처: https://github.com/iamchiwon/RxSwift_In_4_Hours
