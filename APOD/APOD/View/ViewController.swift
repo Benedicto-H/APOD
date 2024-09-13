@@ -288,8 +288,6 @@ extension ViewController: PresenterDelegate {
         dateLabel.text = nil
         explanationLabel.text = nil
     }
-
-
 }
 
 #Preview(body: {
