@@ -36,7 +36,7 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
 > 이 때, Presenter가 View와 인터랙션하는 방법은 주로 protocol을 통해 알려준다.
 <br>
 
-- PresenterDelegate.swift
+- Presenter.swift
 ```swift
 // MARK: - PresenterView Pr
 /// Abstract the View behind a Protocol
