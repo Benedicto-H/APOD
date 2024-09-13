@@ -8,21 +8,13 @@
 import UIKit
 import SwiftUI
 
-// MARK: - View+Controller
-class ViewController: UIViewController {
+// MARK: - View
+/// `View`와 `ViewController`를 같이 하나의 뷰로 봄
+final class ViewController: UIViewController {
     
-    // MARK: - Properties
-    /// Behavioral Pattern: `Observer`
-    private var apod: Apod? {
-        willSet {}
-        didSet { print("DidSet: \(String(describing: oldValue)) \n") }
-    }
-    
-    /// Counter
-    private var count: Int = 0
-    
-    /// Timer
-    private var timer: Timer?
+    // MARK: - Property
+    /// `View`와 `Presenter`는 `1:1 관계`
+    private var presenter: Presenter?
     
     // MARK: - Views
     /// 인디케이터 뷰
@@ -147,7 +139,7 @@ class ViewController: UIViewController {
     }()
     
     /// loadButton과 clearButton을 StackView로 관리
-    private var hStackView: UIStackView = {
+    private let hStackView: UIStackView = {
         let stackView: UIStackView = UIStackView()
         
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -163,6 +155,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        presenter = Presenter(delegate: self)
         
         setupUI()
         applyConstraints()
@@ -248,75 +242,48 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Actions (Event Handler)
+    /// `Presenter`에게 Input을 알림
     /// loadButton Action
     @objc private func loadButtonPressed() -> Void {
         
-        activityIndicator.startAnimating()
-        
-        /// 시간초 증가 (타이머 시작)
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self: ViewController = self else { return }
-            
-            /// 0.1초마다 1씩 증가
-            self.count += 1
-            
-            DispatchQueue.main.async {
-                self.timeLabel.text = "Loading Time: \(self.count)"
-            }
-        }
-        
-        DispatchQueue.global(qos: .userInteractive).async {
-            APICaller.shared.fetchApod { [weak self] result in
-                /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
-                
-                guard let `self`: ViewController = self else { return }
-                /// weak self 사용으로 인해 self (ViewController) 가 옵셔널이 되므로, 옵셔널 바인딩을 통해 클로저 시작 시, self 에 대한 임시 강한 참조 생성
-                /// 즉, closure 내부에서 self (ViewController)가 유효한지 확인하는 과정
-                
-                switch result {
-                case .success(let apod):
-                    print("========== Successfully fetched data ========== \n\(apod) \n")
-                    self.apod = apod
-                    break;
-                case .failure(let error):
-                    print(error.localizedDescription)
-                    break;
-                }
-                
-                /// fetchApod의 escaping closure로 데이터를 잘 받아왔다면 계속 진행, 아니면 return
-                guard let apod: Apod = self.apod else { return }
-                
-                ImageCacheManager.loadImage(from: self.apod?.url ?? "") { [weak self] result in
-                    guard let `self`: ViewController = self else { return }
-                    
-                    switch result {
-                    case .success(let image):
-                        DispatchQueue.main.async {
-                            /// UI 업데이트 및 타이머 중지
-                            self.apodImageView.image = image
-                            
-                            self.activityIndicator.stopAnimating()
-                            self.timer?.invalidate()
-                            self.timer = nil
-                            
-                            self.titleLabel.text = apod.title
-                            self.dateLabel.text = apod.date
-                            self.explanationLabel.text = apod.explanation
-                        }
-                        break;
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        break;
-                    }
-                }
-            }
-        }
+        presenter?.didTapLoadButton()
     }
     
     /// clearButton Action
     @objc private func clearButtonPressed() -> Void {
         
-        count = 0
+        presenter?.didTapClearButton()
+    }
+
+
+}
+
+// MARK: - Extension ViewController
+/// `Presenter`로부터 Output을 받아 View를 그리는 작업에만 집중
+extension ViewController: PresenterDelegate {
+    
+    func startLoading() -> Void {
+        activityIndicator.startAnimating()
+    }
+    
+    func stopLoading() -> Void {
+        activityIndicator.stopAnimating()
+    }
+    
+    func updateTimer(count: Int) {
+        self.timeLabel.text = "Loading Time: \(count)"
+    }
+    
+    func display(with apod: Apod, image: UIImage) {
+        
+        self.apodImageView.image = image
+        self.titleLabel.text = apod.title
+        self.dateLabel.text = apod.date
+        self.explanationLabel.text = apod.explanation
+    }
+    
+    func clear() -> Void {
+        
         timeLabel.text = nil
         apodImageView.image = nil
         titleLabel.text = nil
