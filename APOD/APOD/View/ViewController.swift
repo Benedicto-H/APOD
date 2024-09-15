@@ -272,7 +272,7 @@ extension ViewController: PresenterDelegate {
         self.timeLabel.text = "Loading Time: \(count)"
     }
     
-    func display(with apod: Apod, image: UIImage) {
+    func displayUI(with apod: Apod, image: UIImage) {
         
         self.apodImageView.image = image
         self.titleLabel.text = apod.title
@@ -280,7 +280,7 @@ extension ViewController: PresenterDelegate {
         self.explanationLabel.text = apod.explanation
     }
     
-    func clear() -> Void {
+    func clearUI() -> Void {
         
         timeLabel.text = nil
         apodImageView.image = nil

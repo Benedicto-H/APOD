@@ -23,10 +23,10 @@ protocol PresenterDelegate: AnyObject {
     func updateTimer(count: Int)
     
     /// 뷰 그리기
-    func display(with apod: Apod, image: UIImage)
+    func displayUI(with apod: Apod, image: UIImage)
     
     /// 뷰 초기화
-    func clear()
+    func clearUI()
 }
 
 // MARK: - Presenter
@@ -108,7 +108,7 @@ final class Presenter {
             switch result {
             case .success(let image):
                 DispatchQueue.main.async {
-                    self.delegate?.display(with: apod, image: image)
+                    self.delegate?.displayUI(with: apod, image: image)
                     self.delegate?.stopLoading()
                     self.timer?.invalidate()
                     self.timer = nil
@@ -124,6 +124,6 @@ final class Presenter {
     func clearData() -> Void {
         
         self.count = 0
-        self.delegate?.clear()
+        self.delegate?.clearUI()
     }
 }
