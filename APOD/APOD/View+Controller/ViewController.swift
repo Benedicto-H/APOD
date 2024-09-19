@@ -11,18 +11,8 @@ import SwiftUI
 // MARK: - View+Controller
 class ViewController: UIViewController {
     
-    // MARK: - Properties
-    /// Behavioral Pattern: `Observer`
-    private var apod: Apod? {
-        willSet {}
-        didSet { print("DidSet: \(String(describing: oldValue)) \n") }
-    }
-    
-    /// Counter
-    private var count: Int = 0
-    
-    /// Timer
-    private var timer: Timer?
+    // MARK: - Property
+    lazy var viewModel: ViewModel = ViewModel()
     
     // MARK: - Views
     /// 인디케이터 뷰
@@ -142,6 +132,7 @@ class ViewController: UIViewController {
         label.numberOfLines = 0
         label.font = UIFont(name: "Helvetica", size: 15)
         label.textAlignment = .center
+        label.isHidden = true
         
         return label
     }()
@@ -166,9 +157,11 @@ class ViewController: UIViewController {
         
         setupUI()
         applyConstraints()
+        
+        bindUI()
     }
     
-    // MARK: - Custom Methods (UI Setup, AutoLayout)
+    // MARK: - Custom Methods (UI Setup, AutoLayout, Binding)
     /// Setup Views
     private func setupUI() -> Void {
         
@@ -247,87 +240,68 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate(constraints)
     }
     
+    /// Binding
+    private func bindUI() {
+        
+        viewModel.isLoading.bind { [weak self] isLoading in
+            guard let `self`: ViewController = self else { return }
+
+            DispatchQueue.main.async {
+                if (isLoading == true) {
+                    self.activityIndicator.startAnimating()
+                    self.timeLabel.isHidden = false
+                } else {
+                    self.activityIndicator.stopAnimating()
+                }
+            }
+        }
+        
+        viewModel.loadingTime.bind { [weak self] time in
+            guard let `self`: ViewController = self else { return }
+            
+            DispatchQueue.main.async {
+                self.timeLabel.text = "Loading Time: \(time ?? 0)"
+            }
+        }
+        
+        viewModel.cacheImage.bind { [weak self] image in
+            guard let `self`: ViewController = self else { return }
+            
+            DispatchQueue.main.async {
+                self.apodImageView.image = image
+            }
+        }
+        
+        viewModel.apod.bind { [weak self] apod in
+            guard let `self`: ViewController = self else { return }
+            
+            DispatchQueue.main.async {
+                self.titleLabel.text = apod?.title
+                self.dateLabel.text = apod?.date
+                self.explanationLabel.text = apod?.explanation
+            }
+        }
+    }
+
+    
     // MARK: - Actions (Event Handler)
     /// loadButton Action
     @objc private func loadButtonPressed() -> Void {
         
-        activityIndicator.startAnimating()
-        
-        /// 시간초 증가 (타이머 시작)
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self: ViewController = self else { return }
-            
-            /// 0.1초마다 1씩 증가
-            self.count += 1
-            
-            DispatchQueue.main.async {
-                self.timeLabel.text = "Loading Time: \(self.count)"
-            }
-        }
-        
-        DispatchQueue.global(qos: .userInteractive).async {
-            APICaller.shared.fetchApod { [weak self] result in
-                /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
-                
-                guard let `self`: ViewController = self else { return }
-                /// weak self 사용으로 인해 self (ViewController) 가 옵셔널이 되므로, 옵셔널 바인딩을 통해 클로저 시작 시, self 에 대한 임시 강한 참조 생성
-                /// 즉, closure 내부에서 self (ViewController)가 유효한지 확인하는 과정
-                
-                switch result {
-                case .success(let apod):
-                    print("========== Successfully fetched data ========== \n\(apod) \n")
-                    self.apod = apod
-                    break;
-                case .failure(let error):
-                    print(error.localizedDescription)
-                    break;
-                }
-                
-                /// fetchApod의 escaping closure로 데이터를 잘 받아왔다면 계속 진행, 아니면 return
-                guard let apod: Apod = self.apod else { return }
-                
-                ImageCacheManager.loadImage(from: self.apod?.url ?? "") { [weak self] result in
-                    guard let `self`: ViewController = self else { return }
-                    
-                    switch result {
-                    case .success(let image):
-                        DispatchQueue.main.async {
-                            /// UI 업데이트 및 타이머 중지
-                            self.apodImageView.image = image
-                            
-                            self.activityIndicator.stopAnimating()
-                            self.timer?.invalidate()
-                            self.timer = nil
-                            
-                            self.titleLabel.text = apod.title
-                            self.dateLabel.text = apod.date
-                            self.explanationLabel.text = apod.explanation
-                        }
-                        break;
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        break;
-                    }
-                }
-            }
-        }
+        viewModel.fetchData()
     }
     
     /// clearButton Action
     @objc private func clearButtonPressed() -> Void {
         
-        count = 0
-        timeLabel.text = nil
-        apodImageView.image = nil
-        titleLabel.text = nil
-        dateLabel.text = nil
-        explanationLabel.text = nil
+        viewModel.clear()
+        timeLabel.isHidden = true
     }
 
 
 }
 
-#Preview(body: {
-    ViewController()
-})
+//#Preview(body: {
+//    ViewController()
+//})
 
