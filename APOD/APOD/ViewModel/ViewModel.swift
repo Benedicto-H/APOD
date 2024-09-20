@@ -60,9 +60,8 @@ final class ViewModel {
                 switch result {
                 case .success(let apod):
                     print("========== Successfully fetched data ==========")
-                    self.apod.value = apod
                     
-                    loadImage(with: self.apod.value) {
+                    loadImage(with: apod) {
                         DispatchQueue.main.async {
                             self.stopTimer()
                         }
@@ -77,15 +76,17 @@ final class ViewModel {
         }
     }
     
-    func loadImage(with apod: Apod?, completion: @escaping () -> Void) -> Void {
+    private func loadImage(with apod: Apod, completion: @escaping () -> Void) -> Void {
         
-        ImageCacheManager.loadImage(from: apod?.url ?? "") { [weak self] result in
+        ImageCacheManager.loadImage(from: apod.url ?? "") { [weak self] result in
             guard let `self`: ViewModel = self else { return }
             
             switch result {
             case .success(let image):
                 print("========== Successfully loaded image ==========")
+                
                 self.cacheImage.value = image
+                self.apod.value = apod
                 
                 completion()
                 break;
