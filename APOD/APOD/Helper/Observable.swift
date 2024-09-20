@@ -12,6 +12,7 @@ import Foundation
 final class Observable<T> {
     
     // MARK: - Properties
+    /// Behavioral Pattern: `Observer`
     var value: T {
         didSet {
             /// listener를 통해 새로운 값을 전달
