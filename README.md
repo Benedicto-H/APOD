@@ -37,69 +37,67 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
 <br>
 
 - Presenter.swift
-```swift
-// MARK: - PresenterView Pr
-/// Abstract the View behind a Protocol
-/// `View`에서 구현되어야 할 메서드를 정의
-protocol PresenterDelegate: AnyObject {
+  ```swift
+  // MARK: - PresenterView Pr
+  /// Abstract the View behind a Protocol
+  /// `View`에서 구현되어야 할 메서드를 정의
+  protocol PresenterDelegate: AnyObject {
     
-    /// 인디케이터 실행
-    func startLoading()
+      /// 인디케이터 실행
+      func startLoading()
+  
+      /// 인디케이터 종료
+      func stopLoading()
     
-    /// 인디케이터 종료
-    func stopLoading()
+      /// timeLabel 설정
+      func updateTimer(count: Int)
     
-    /// timeLabel 설정
-    func updateTimer(count: Int)
+      /// 뷰 그리기
+      func display(with apod: Apod, image: UIImage)
     
-    /// 뷰 그리기
-    func display(with apod: Apod, image: UIImage)
-    
-    /// 뷰 초기화
-    func clear()
-}
-```
-
-<br>
+      /// 뷰 초기화
+      func clear()
+  }
+  ```
+  <br>
 
 - ViewController.swift (Extension)
-```swift
-// MARK: - Extension ViewController
-/// `Presenter`로부터 Output을 받아 View를 그리는 작업에만 집중
-extension ViewController: PresenterDelegate {
+  ```swift
+  // MARK: - Extension ViewController
+  /// `Presenter`로부터 Output을 받아 View를 그리는 작업에만 집중
+  extension ViewController: PresenterDelegate {
     
-    func startLoading() -> Void {
-        activityIndicator.startAnimating()
-    }
+      func startLoading() -> Void {
+          activityIndicator.startAnimating()
+      }
     
-    func stopLoading() -> Void {
-        activityIndicator.stopAnimating()
-    }
+      func stopLoading() -> Void {
+          activityIndicator.stopAnimating()
+      }
     
-    func updateTimer(count: Int) {
-        self.timeLabel.text = "Loading Time: \(count)"
-    }
+      func updateTimer(count: Int) {
+          self.timeLabel.text = "Loading Time: \(count)"
+      }
     
-    func display(with apod: Apod, image: UIImage) {
+      func display(with apod: Apod, image: UIImage) {
+  
+          self.apodImageView.image = image
+          self.titleLabel.text = apod.title
+          self.dateLabel.text = apod.date
+          self.explanationLabel.text = apod.explanation
+      }
+    
+      func clear() -> Void {
         
-        self.apodImageView.image = image
-        self.titleLabel.text = apod.title
-        self.dateLabel.text = apod.date
-        self.explanationLabel.text = apod.explanation
-    }
-    
-    func clear() -> Void {
-        
-        timeLabel.text = nil
-        apodImageView.image = nil
-        titleLabel.text = nil
-        dateLabel.text = nil
-        explanationLabel.text = nil
-    }
-}
-```
-
-<br>
+          timeLabel.text = nil
+          apodImageView.image = nil
+          titleLabel.text = nil
+          dateLabel.text = nil
+          explanationLabel.text = nil
+      }
+  }
+  ```
+  <br>
 
 ## 💣 문제점
 - **View**와 **Presenter**의 관계
