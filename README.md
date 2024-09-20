@@ -7,138 +7,179 @@
 <br>
 
 ## 📖 학습 포인트
-- URLSession
-- NSCache (Memory Cache)
-- GCD (Grand Central Dispatch)
-- Cocoa MVC
+- MVP -> **MVVM**
 
 <br>
 
-## 📱 결과
-<img src="https://github.com/user-attachments/assets/0fde64c2-96d4-4af8-8355-717b36d1efde" width="50%" height="50%">
-
-<br>
-
-###  NSCache simulation
-|No Cache|Using Cache|
+## ✅ 개선한 점
+|MVP|MVVM|
 |:---:|:---:|
-|<img src="https://github.com/user-attachments/assets/0980e419-d6e0-4009-a49f-0a0dd1ad6021">|<img src="https://github.com/user-attachments/assets/5d1d3cde-398a-4fa9-aba1-a0778e22449e">|
+|<img src="https://github.com/user-attachments/assets/45b61459-5e7f-4f92-80a0-caf53ee597d7">|<img src="https://github.com/user-attachments/assets/f7521118-8f5a-4fbb-b766-ee7ba21e9cc6">|
 
-> 0.1초마다 1씩 증가하는 타이머를 통해 최초 이미지를 불러올 때, 2.8초의 시간이 소요되나 NSCache를 사용하여 이미지를 캐싱하였을 때, 0.2초만에 이미지를 불러오는 것을 확인할 수 있다.
+MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로써, 하나의 View에 매번 하나의 Presenter를 만들어주어야 했음. 이 문제를 ViewModel이라는 개념을 통해 해결
+> 즉, Presenter가 가지는 비즈니스 로직을 ViewModel을 통해 공통으로 처리하면서, ViewModel은 View에 보여지는 데이터 요소만을 가지고 있음
 
+|View (UIViewController)|ViewModel|
+|:---:|:---:|
+|<img src="https://github.com/user-attachments/assets/8762ba87-e941-4c1e-a651-8422669978b1">|<img src="https://github.com/user-attachments/assets/b202d109-b1e8-4890-bd66-af895d6cbba8">|
+
+- Model: 서비스에 사용되어지는 원천 (source) 데이터
+  
+- View: Controller와 View (Button, Label 등)를 하나의 View로 취급함
+  > View = UIView (Button, label etc.) + UIViewController
+  
+- ViewModel: View와 Model의 중재자 역할로서, View의 Life Cycle에 관여하지 않음.
+  <br>
+  
+**MVVM Flow**: _View가 이벤트를 받으면 -> 이벤트가 뷰모델로 전달되어 상태를 변경 -> 자신의 상태를 View에게 알림 -> 바인딩을 통해 UI를 갱신_
+> 이 때, View가 ViewModel로부터 UI를 갱신하는 과정에서 **바인딩 (Binding)** 의 개념이 도입됨
+>
+> 즉, ViewModel은 View가 그려야 할 데이터를 갖고 있으면서 이를 Observable (방출)하고, View는 ViewModel의 상태를 지켜본다 (Observed, 관찰)
 <br>
 
-## 🧐 고민한 점
-- **closures 기반의 UI components를 구성할 때, `let` 또는 `lazy var`를 사용하는 것에 대한 고민**
-  - UILabel, UIButton, UIScrollView 등과 같은 View들은 초기화 작업이 무겁지 않은 뷰 (즉, 화면에 즉시 표시되거나, 인스턴스가 인스턴스화되자마자 필요한 경우)이기 때문에, `let`을 사용
-    
-  - 네트워킹을 통한 API 호출로 인해 View가 그려지는 UIImageView는 이미지가 준비되면 초기화할 수 있도록 (즉, 성능 최적화를 위해 이미지가 필요한 시점까지 초기화를 지연) `lazy var`를 사용
-    > 일반적으로 _'네트워크 지연시간 (Latency)'_, _'비동기 처리'_, _'자원 소모'_, _'네트워크 오류 처리'_, _'UI 블로킹 방지'_ 등의 이유로 네트워킹 작업은 무거운 작업으로 간주됨.
-    <br>
-    
-- **escaping closures에서 self를 강한 참조하지 않도록 [weak self]를 사용**
-  - escaping closures에서 `self` 키워드를 사용하면 closures의 context 수명 동안에는 `self (ViewController)`에 대해 closure와 `Strong Reference Cycles (강한 참조 사이클)`이 발생하여, 서로간의 Reference Count를 1 증가.
-    
-  - closure 실행이 끝나면, closure가 들고 있던 `self`에 대한 강한 참조가 해제되면서, `self`의 RC 가 1 감소.
-    
-  - API에 대한 응답이 정상적으로 돌아오지 않는다면, closure와 `self` 사이의 강한 순환 참조가 해결되지 않아 Memory Leaks가 발생.
-    > 강한 순환 참조를 방지하기 위해, closure에서 [weak self]를 선언해 `self`의 RC 가 올라가지 않도록 구현
-    
+- iOS 환경에서 바인딩을 구현할 수 있는 기술들
+  - KVO Key-Value Observing)
+  - NotificationCenter
+  - Delegation Pattern
+  - Property Observers
+  - Custom Observable
+  - Closure
+  - etc.
+  <br>
+
+- Observable.swift
   ```swift
-  @objc private func loadButtonPressed() -> Void {
-      //  생략...
-      DispatchQueue.global(qos: .userInteractive).async {
-          APICaller.shared.fetchApod { [weak self] result in
-              /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
-  
-              guard let `self`: ViewController = self else { return }
-              /// weak self 사용으로 인해 self (ViewController) 가 옵셔널이 되므로, 옵셔널 바인딩을 통해 클로저 시작 시, self 에 대한 임시 강한 참조 생성
-              /// 즉, closure 내부에서 self (ViewController)가 유효한지 확인하는 과정
-            
-              switch result {
-              case .success(let apod):
-                  print("========== Successfully fetched data ========== \n\(apod) \n")
-                  self.apod = apod
-                  break;
-              case .failure(let error):
-                  print(error.localizedDescription)
-                  break;
-              }
-            //  생략...
+  // MARK: - Custom Observable
+  /// Generic 타입 T를 통해 어떠한 데이터 타입도 저장 되도록 함
+  final class Observable<T> {
+   
+      // MARK: - Properties
+      /// Behavioral Pattern: `Observer`
+      var value: T {
+          didSet {
+              /// listener를 통해 새로운 값을 전달
+              listener?(value)
           }
+      }
+    
+      private var listener: ((T) -> Void)?
+  
+      // MARK: - Methods
+      init(_ value: T) {
+          self.value = value
+      }
+  
+      /// 외부에서 전달된 closure를 listener로 설정
+      func bind(_ closure: @escaping ((T) -> Void)) -> Void {
+    
+          closure(value)
+          listener = closure
       }
   }
   ```
+  <br>
 
-<br>
-
-## 💣 문제점
-- **Cocoa MVC의 문제점**
-  ![RealCocoaMVC](https://github.com/user-attachments/assets/580d7c69-59bd-45ec-9374-5e4298d4b725)
-  
-  - Controller가 View의 Life Cycle과 밀접하게 연관되어 있음.
-    > e.g. viewDidLoad()
-    
-  - Model에게 맞지 않는 모든 비즈니스 로직이 ViewController에게 집중되어 있어, ViewController가 **Massive한 특성을 갖게됨.**
-    > e.g. target-action의 event 처리, AutoLayout 등
-    
-  - View와 Controller는 의존관계로 강하게 결합됨.
-
-<br>
-
-- **Caching 처리의 문제점** : _Caching의 문제를 Disk Caching을 통해 해결!_
-  |Using Cache|
-  |:---:|
-  |<img src="https://github.com/user-attachments/assets/1a9d8b5f-7031-44d5-9b0a-b50d8bf55416">|
-
-  이미지 캐싱을 위해 사용한 NSCache는 **Memory Cache**로서, 앱이 사용중인 메모리의 일부분을 캐시 메모리로 사용하면서 앱이 백그라운드로 전환될 때, 시스템은 앱이 사용하는 메모리를 줄이기 위해 최적화를 수행한다.
-  > NSCache에 저장된 이미지와 같은 객체도 포함!
- 
-<br>
-
-## 💡 개선할 점
-- **Cocoa MVC의 문제점을 MVP -> MVVM의 순서로 리팩토링**
-  
-- **GCD to Swift Concurrency**
-  
-- **디스크 캐싱 추가 ✅**
-  |Using Memory Cache / Disk Cache|ImageCache Directory|
-  |:---:|:---:|
-  |<img src="https://github.com/user-attachments/assets/afd98a05-134e-4114-aab3-e88c88d39b09">|<img src="https://github.com/user-attachments/assets/41a23dbe-c8c3-4a47-99cf-a2058061f5d2">|
-
-  > NASA Open APIs의 APOD 데이터는 UTC-4 (Eastern Time) 00:00를 기준으로 업데이트 되기에, 캐시를 무효화하여 최신화 된 데이터 이외에는 모두 삭제되게 구현함으로써, 앱이 백그라운드 상태에서 foreground 상태로 변경될 때 디스크 캐시를 사용
-  >
-  > ref: [nasa/apod-api issue #26: Missing info: at what time "today's" image is created? ](https://github.com/nasa/apod-api/issues/26)
-
+- ViewModel.swift
   ```swift
-  // MARK: - ImageCacheManager
-  final class ImageCacheManager {
-    //  생략...
+  final class ViewModel {
+    
+      // MARK: - Properties
+      /// Observables: 값을 방출
+      var apod: Observable<Apod?> = Observable<Apod?>(nil)
+      var cacheImage: Observable<UIImage?> = Observable<UIImage?>(nil)
+      var loadingTime: Observable<Int?> = Observable<Int?>(nil)
+      var isLoading: Observable<Bool> = Observable<Bool>(false)
+  
+      private var count: Int = 0
+      private var timer: Timer?
+  
+      // MARK: - Methods
+      init() {}
+      //  생략..
+  ```
+  <br>
 
-    /// for `Disk Cache`
-    static let diskCacheDirectory: URL = {
-        /// 캐시 디렉토리 경로 설정
-        guard let path: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
-            fatalError("캐시 디렉토리를 찾을 수 없음.")
-        }
+- ViewController.swift
+  ```swift
+  class ViewController: UIViewController {
+  
+      // MARK: - Property
+      lazy var viewModel: ViewModel = ViewModel()
 
-        /// Caches의 ImageCache 서브폴더 생성
-        let directory: URL = URL(fileURLWithPath: path).appendingPathComponent("ImageCache")
+      //  생략..
+      /// Binding
+      private func bindUI() {
+        
+          viewModel.isLoading.bind { [weak self] isLoading in
+              guard let `self`: ViewController = self else { return }
 
-        /// 캐시 디렉토리가 없으면 생성
-        if (!FileManager.default.fileExists(atPath: directory.path)) {
-            do {
-                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
-            } catch {
-                fatalError("디스크 캐시 디렉토리 생성 실패: \(error.localizedDescription)")
-            }
-        }
+              DispatchQueue.main.async {
+                  if (isLoading == true) {
+                      self.activityIndicator.startAnimating()
+                      self.timeLabel.isHidden = false
+                  } else {
+                      self.activityIndicator.stopAnimating()
+                  }
+              }
+          }
+        
+          viewModel.loadingTime.bind { [weak self] time in
+              guard let `self`: ViewController = self else { return }
+            
+              DispatchQueue.main.async {
+                  self.timeLabel.text = "Loading Time: \(time ?? 0)"
+              }
+          }
+        
+          viewModel.cacheImage.bind { [weak self] image in
+              guard let `self`: ViewController = self else { return }
+            
+              DispatchQueue.main.async {
+                  self.apodImageView.image = image
+              }
+          }
+        
+          viewModel.apod.bind { [weak self] apod in
+              guard let `self`: ViewController = self else { return }
+            
+              DispatchQueue.main.async {
+                  self.titleLabel.text = apod?.title
+                  self.dateLabel.text = apod?.date
+                  self.explanationLabel.text = apod?.explanation
+              }
+          }
+      }
 
-        return directory
-    }()
+      // MARK: - Actions (Event Handler)
+      /// loadButton Action
+      @objc private func loadButtonPressed() -> Void {
+        
+          viewModel.fetchData()
+      }
+    
+      /// clearButton Action
+      @objc private func clearButtonPressed() -> Void {
+        
+          viewModel.clear()
+          timeLabel.isHidden = true
+      }
   }
   ```
+  <br>
 
-  > FileManager를 통해 이미지를 file로 관리하면서 Caches 폴더의 서브폴더를 생성하여 이미지들을 관리
+## 💣 문제점
+- **ViewModel 관리** + **바인딩의 불편함** + **상태관리의 어려움**
   
-  - **Caching Flow**: _메모리 캐시로부터 데이터 확인 -> (실패) -> 디스크 캐시로부터 데이터 확인 -> (실패) -> API를 통해 얻은 데이터를 Memory Cache와 Disk Cache에 각각 추가_
+  <img src="https://github.com/user-attachments/assets/3f9fd5b7-7be8-419c-8f39-7b01b5996ee0" width="50%" height="50%">
+  
+  > 이미지 출처: https://github.com/iamchiwon/RxSwift_In_4_Hours
+  
+  - **ViewModel**은 **여러 Views에서 재사용 (공유)되어질 데이터와 비즈니스 로직을 갖고 있기 때문에** VM이 너무 많은 책임을 지게 되면, 비대해지고 유지보수가 어려워짐.
+    
+    > 💡 Presenter vs ViewModel
+    > 
+    > : **Presenter는** View와 1:1 대응관계로 **View를 참조**하지만, **ViewModel**은 View와 N:1 대응관계를 가지면서 **View를 참조하지 않음!**
+
+  - KVO, Property Observers, Closures, Custom Observable, NotificationCenter 등은 바인딩이라고 표현하기에는 애매한 감이 있고 사용법 또한 불편함. (-> 이를 RxSwift나 Combine Framework와 같은 **Reactive Programming** 으로 해결할 수 있음.)
+ 
+  - 만약, UI의 상태를 관리하는 ViewModel이 복잡한 상태관리를 필요로 한다면 상태를 관리하는 과정이 복잡해질 수도 있음. (-> 이를 ReactorKit (UIKit) 또는 TCA (SwiftUI)로 해결 가능)
