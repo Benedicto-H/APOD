@@ -282,7 +282,6 @@ class ViewController: UIViewController {
             }
         }
     }
-
     
     // MARK: - Actions (Event Handler)
     /// loadButton Action
