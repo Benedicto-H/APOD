@@ -62,9 +62,7 @@ final class ViewModel {
                     print("========== Successfully fetched data ==========")
                     
                     loadImage(with: apod) {
-                        DispatchQueue.main.async {
-                            self.stopTimer()
-                        }
+                        self.stopTimer()
                     }
                     break;
                 case .failure(let error):
