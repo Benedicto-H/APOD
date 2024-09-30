@@ -10,6 +10,8 @@ import Foundation
 // MARK: - 사용자 정의 ImageCacheManager Error 타입
 enum ImageCacheManagerError: Error {
     case invalidURL
+    case invalidMemoryCache
+    case invalidDiskCache
     case imageCreationFailed
     case imageLoadingFailed(Error)
     
@@ -17,6 +19,10 @@ enum ImageCacheManagerError: Error {
         switch self {
         case .invalidURL:
             return "Invalid URL"
+        case .invalidMemoryCache:
+            return "Invalid memory cache"
+        case .invalidDiskCache:
+            return "Invalid disk cache"
         case .imageCreationFailed:
             return "Image creation failed"
         case .imageLoadingFailed(let error):

@@ -286,7 +286,7 @@ class ViewController: UIViewController {
                 /// fetchApod의 escaping closure로 데이터를 잘 받아왔다면 계속 진행, 아니면 return
                 guard let apod: Apod = self.apod else { return }
                 
-                ImageCacheManager.loadImage(from: self.apod?.url ?? "") { [weak self] result in
+                ImageCacheManager.loadData(from: self.apod?.url ?? "") { [weak self] result in
                     guard let `self`: ViewController = self else { return }
                     
                     switch result {
