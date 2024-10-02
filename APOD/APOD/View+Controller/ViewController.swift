@@ -329,7 +329,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
                 /// mediaType의 경우에 따라
                 switch mediaType {
                     /// 1. 이미지인 경우
-                case .image(let imageURL):
+                case .image(_):
                     ImageCacheManager.loadData(from: apod.url ?? "") { [weak self] result in
                         guard let `self`: ViewController = self else { return }
                         
