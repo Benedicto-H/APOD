@@ -109,7 +109,7 @@ final class ImageCacheManager {
         return UIImage(data: data)
     }
     
-    /// 3. `메모리/디스크 캐시에 각각 데이터 추가`
+    /// 3. `메모리/디스크 캐시에 각각 데이터 추가 후 반환`
     private static func saveDataIntoCache(url: URL, key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
         
         DispatchQueue.global(qos: .background).async {
@@ -132,7 +132,7 @@ final class ImageCacheManager {
                     guard let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else { return }
                     
                     imageCache.setObject(image, forKey: key as NSString, cost: cost)
-                    print("========== 이미지가 캐시에 추가됨! ==========")
+                    print("========== 이미지가 메모리 캐시에 추가됨! ==========")
                 }
                 
                 /// 3-2. `디스크 캐시 추가`
@@ -143,7 +143,7 @@ final class ImageCacheManager {
                     try imageData.write(to: fileURL)
                     
                     print("이미지 저장 경로: \(fileURL.path)")
-                    print("========== 이미지가 디스크에 추가됨! ==========")
+                    print("========== 이미지가 디스크 캐시에 추가됨! ==========")
                     
                     completion(.success(image))
                 } catch {
@@ -193,19 +193,19 @@ final class ImageCacheManager {
                 case .failure:
                     completion(.failure(.invalidDiskCache))
                 }
-            }
-            
-            /// 3. `Memory Cache와 Disk Cache에 각각 데이터 추가 후 반환`
-            print("********** 메모리/디스크 캐시 추가 시작 **********")
-            saveDataIntoCache(url: url, key: cacheKey) { result in
-                switch result {
-                case .success(let image):
-                    DispatchQueue.main.async {
-                        completion(.success(image))
+                
+                /// 3. `Memory Cache와 Disk Cache에 각각 데이터 추가 후 반환`
+                print("********** 메모리/디스크 캐시 추가 시작 **********")
+                saveDataIntoCache(url: url, key: cacheKey) { result in
+                    switch result {
+                    case .success(let image):
+                        DispatchQueue.main.async {
+                            completion(.success(image))
+                        }
+                        return
+                    case.failure(let error):
+                        completion(.failure(error))
                     }
-                    return
-                case.failure(let error):
-                    completion(.failure(error))
                 }
             }
         }
