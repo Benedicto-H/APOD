@@ -19,6 +19,39 @@
 
 <br>
 
+**++ 📺 2024.10.01 새롭게 추가한 WKWebView**
+|WKWebView|JSON|
+|:---:|:---:|
+|<img src="https://github.com/user-attachments/assets/db4d1036-84e3-44f0-9e7b-6f329207bf0e">|<img src="https://github.com/user-attachments/assets/fd230da1-3aa2-4e27-a06b-9c4078899693" width="50%" height="50%">|
+
+> APOD의 media_type이 video인 경우, url의 값으로 YouTube 동영상 링크를 제공하기에, WebKit framework의 WKWebView를 구성하고 미디어 타입에 따른 enum을 구현하여 video인 경우와 image인 경우 view를 다르게 구현함
+
+```swift
+//  생략..
+case .video(let videoURL):
+    DispatchQueue.main.async {
+        /// 비디오면 이미지 뷰를 숨기고 웹 뷰 활성화
+        self.apodWebView.isHidden = false
+        self.apodImageView.isHidden = true
+                        
+        guard let absoluteURL: URL = URL(string: videoURL.absoluteString) else { return }
+        let request: URLRequest = URLRequest(url: absoluteURL)
+                        
+        self.apodWebView.load(request)
+                        
+        self.activityIndicator.stopAnimating()
+        self.timer?.invalidate()
+        self.timer = nil
+                        
+        self.titleLabel.text = apod.title
+        self.dateLabel.text = apod.date
+        self.explanationLabel.text = apod.explanation
+    }
+//  생략..
+```
+
+<br>
+
 ###  NSCache simulation
 |No Cache|Using Cache|
 |:---:|:---:|
@@ -97,7 +130,11 @@
 <br>
 
 ## 💡 개선할 점
-- **Cocoa MVC의 문제점을 MVP -> MVVM의 순서로 리팩토링**
+- **Cocoa MVC의 문제점을 MVP -> MVVM의 순서로 리팩토링 ✅**
+  - MVP: [develop_mvp](https://github.com/Benedicto-H/APOD/tree/develop_mvp)
+    
+  - MVVM: [develop_mvvm](https://github.com/Benedicto-H/APOD/tree/develop_mvvm)
+  > 상태관리를 위한 ReactorKit 도입 예정
   
 - **GCD to Swift Concurrency**
   
@@ -105,40 +142,41 @@
   |Using Memory Cache / Disk Cache|ImageCache Directory|
   |:---:|:---:|
   |<img src="https://github.com/user-attachments/assets/afd98a05-134e-4114-aab3-e88c88d39b09">|<img src="https://github.com/user-attachments/assets/41a23dbe-c8c3-4a47-99cf-a2058061f5d2">|
+  <img src="https://github.com/user-attachments/assets/0808264e-1818-4eaf-ab96-bcc1ca0d0d53">
 
   > NASA Open APIs의 APOD 데이터는 UTC-4 (Eastern Time) 00:00를 기준으로 업데이트 되기에, 캐시를 무효화하여 최신화 된 데이터 이외에는 모두 삭제되게 구현함으로써, 앱이 백그라운드 상태에서 foreground 상태로 변경될 때 디스크 캐시를 사용
   >
   > ref: [nasa/apod-api issue #26: Missing info: at what time "today's" image is created? ](https://github.com/nasa/apod-api/issues/26)
-
-  ```swift
-  // MARK: - ImageCacheManager
-  final class ImageCacheManager {
-    //  생략...
-
-    /// for `Disk Cache`
-    static let diskCacheDirectory: URL = {
-        /// 캐시 디렉토리 경로 설정
-        guard let path: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
-            fatalError("캐시 디렉토리를 찾을 수 없음.")
-        }
-
-        /// Caches의 ImageCache 서브폴더 생성
-        let directory: URL = URL(fileURLWithPath: path).appendingPathComponent("ImageCache")
-
-        /// 캐시 디렉토리가 없으면 생성
-        if (!FileManager.default.fileExists(atPath: directory.path)) {
-            do {
-                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
-            } catch {
-                fatalError("디스크 캐시 디렉토리 생성 실패: \(error.localizedDescription)")
-            }
-        }
-
-        return directory
-    }()
-  }
-  ```
-
-  > FileManager를 통해 이미지를 file로 관리하면서 Caches 폴더의 서브폴더를 생성하여 이미지들을 관리
+  <br>
   
-  - **Caching Flow**: _메모리 캐시로부터 데이터 확인 -> (실패) -> 디스크 캐시로부터 데이터 확인 -> (실패) -> API를 통해 얻은 데이터를 Memory Cache와 Disk Cache에 각각 추가_
+  위와 같이 최신 데이터를 얻고자 캐시를 무효화 시키는 작업에는 몇가지 문제점이 발생하게 됨.
+  
+  - 메모리 캐시의 비효율적 처리
+    ```swift
+    imageCache.removeAllObjects()
+    ```
+    문제점: loadImage()가 호출될 때 마다, clearCache()로 인해 매번 메모리 캐시를 비우고, 최신화가 되지 않은 데이터를 디스크 캐시에서 삭제하기 때문에 재사용성이 감소와 CPU 및 메모리 사용량이 증가함.
+    
+  - 디스크 캐시 정리의 비효율성
+    ```swift
+    if (fileURL.lastPathComponent != key) {
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+    ```
+    문제점: 디스크 캐시 내의 모든 파일을 삭제하는 불필요한 I/O 작업으로 성능을 저하시킴.
+    
+    <br>
+    
+    **++ 🪛 2024.10.02 캐싱 개선**
+    |디스크 캐시 만료정책|메모리 캐시 만료정책|
+    |:---:|:---:|
+    |<img src="https://github.com/user-attachments/assets/fda4a867-f91f-4daa-a050-f2a972662abe">|<img src="https://github.com/user-attachments/assets/4053a05f-c44a-4d62-8064-49f3d40f4b7d">|
+ 
+    - APOD 데이터가 업데이트 되는 서버 시간과 상관없이 디스크 캐시에 시간을 기준으로한 캐시 만료정책을 통해, 디스크 캐시에 저장된 이미지 파일의 속성 중 수정날짜를 추출하여 과거의 수정된 시간이 현재시간을 기준으로 24시간이 지났다면 디스크 캐시에서 삭제되도록 구현
+      
+    - NSCache의 totalCostLimit를 적용하여 10MB만을 메모리 캐시로 사용하도록 구현
+      > NSCache의 countLimit와 totalCostLimit를 설정하지 않으면 기본값 0임과 동시에 limit가 없기 때문에, 메모리에 모든것을 계속 저장하게 된다.
+      >
+      > -> NSCache가 자동으로 메모리를 관리하는 기법에는 자체 클래스에 적용된 LFU와 LRU 기법을 통해 이루어진다.
+      >   - LRU (Least Recently Used): 가장 최근에 사용되지 않은 데이터를 우선적으로 제거하는 알고리즘
+      >   - LFU (Least Frequently Used): 가장 적게 사용된 데이터를 우선적으로 제거하는 알고리즘
