@@ -7,10 +7,11 @@
 
 import UIKit
 import SwiftUI
+import WebKit
 
 // MARK: - View
 /// `View`와 `ViewController`를 같이 하나의 뷰로 봄
-final class ViewController: UIViewController {
+final class ViewController: UIViewController, WKNavigationDelegate {
     
     // MARK: - Property
     /// `View`와 `Presenter`는 `1:1 관계`
@@ -37,6 +38,29 @@ final class ViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
         return imageView
+    }()
+    
+    /// 웹 뷰
+    private lazy var apodWebView: WKWebView = {
+        let webView: WKWebView = WKWebView()
+        
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.contentMode = .scaleAspectFit
+        
+        return webView
+    }()
+    
+    /// 웹 뷰 인디케이터
+    private let webViewIndicator: UIActivityIndicatorView = {
+        let indicator: UIActivityIndicatorView = UIActivityIndicatorView()
+        
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        indicator.hidesWhenStopped = true
+        indicator.style = UIActivityIndicatorView.Style.medium
+        indicator.color = UIColor.gray
+        
+        return indicator
     }()
     
     /// 제목 레이블
@@ -156,8 +180,6 @@ final class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        presenter = Presenter(delegate: self)
-        
         setupUI()
         applyConstraints()
     }
@@ -168,6 +190,10 @@ final class ViewController: UIViewController {
         
         view.backgroundColor = .systemBackground
         
+        apodWebView.navigationDelegate = self
+        
+        presenter = Presenter(delegate: self)
+        
         /// hStackView에 뷰 추가
         _ = [loadButton, clearButton, timeLabel].map { hStackView.addArrangedSubview($0) }
         
@@ -177,8 +203,11 @@ final class ViewController: UIViewController {
         /// contentVIew에 explanationLabel 추가
         contentView.addSubview(explanationLabel)
         
+        /// 웹 뷰 숨김
+        apodWebView.isHidden = true
+        
         /// 모든 뷰 추가
-        [activityIndicator, apodImageView, titleLabel, dateLabel, scrollView, hStackView].forEach { self.view.addSubview($0) }
+        [activityIndicator, apodImageView, apodWebView, webViewIndicator, titleLabel, dateLabel, scrollView, hStackView].forEach { self.view.addSubview($0) }
     }
     
     /// AutoLayout
@@ -196,6 +225,16 @@ final class ViewController: UIViewController {
             apodImageView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             apodImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             apodImageView.heightAnchor.constraint(equalToConstant: (view.safeAreaLayoutGuide.layoutFrame.height / 2) - 50),
+            
+            /// apodWebView Constraints
+            apodWebView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            apodWebView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            apodWebView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            apodWebView.heightAnchor.constraint(equalToConstant: (view.safeAreaLayoutGuide.layoutFrame.height / 2) - 50),
+            
+            /// webViewIndicator Constraints
+            webViewIndicator.centerXAnchor.constraint(equalTo: apodWebView.centerXAnchor),
+            webViewIndicator.centerYAnchor.constraint(equalTo: apodWebView.centerYAnchor),
             
             /// titleLabel Constraints
             titleLabel.leadingAnchor.constraint(equalTo: apodImageView.leadingAnchor, constant: 20),
@@ -252,6 +291,25 @@ final class ViewController: UIViewController {
     @objc private func clearButtonPressed() -> Void {
         presenter?.didTapClearButton()
     }
+    
+    // MARK: - WKNavigationDelegate Methods
+    /// webView에 로딩 중일 때 인디케이터 활성화
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        self.webViewIndicator.startAnimating()
+        self.webViewIndicator.isHidden = false
+    }
+    
+    /// webView에 로딩이 완료시, 인디케이터 비활성화
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        self.webViewIndicator.stopAnimating()
+        self.webViewIndicator.isHidden = true
+    }
+    
+    /// webView에 로딩 실패 시, 인디케이터 비활성화
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
+        self.webViewIndicator.stopAnimating()
+        self.webViewIndicator.isHidden = true
+    }
 
 
 }
@@ -272,9 +330,19 @@ extension ViewController: PresenterDelegate {
         self.timeLabel.text = "Loading Time: \(count)"
     }
     
-    func displayUI(with apod: Apod, image: UIImage) {
+    func displayImage(withApod apod: Apod, image: UIImage) {
         
         self.apodImageView.image = image
+        self.titleLabel.text = apod.title
+        self.dateLabel.text = apod.date
+        self.explanationLabel.text = apod.explanation
+    }
+    
+    func displayVideo(withApod apod: Apod, video: URLRequest) {
+        
+        self.apodWebView.load(video)
+        self.apodWebView.isHidden = false
+        self.apodImageView.isHidden = true
         self.titleLabel.text = apod.title
         self.dateLabel.text = apod.date
         self.explanationLabel.text = apod.explanation
@@ -284,6 +352,7 @@ extension ViewController: PresenterDelegate {
         
         timeLabel.text = nil
         apodImageView.image = nil
+        apodWebView.isHidden = true
         titleLabel.text = nil
         dateLabel.text = nil
         explanationLabel.text = nil

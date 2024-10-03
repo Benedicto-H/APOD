@@ -22,8 +22,11 @@ protocol PresenterDelegate: AnyObject {
     /// timeLabel 설정
     func updateTimer(count: Int)
     
-    /// 뷰 그리기
-    func displayUI(with apod: Apod, image: UIImage)
+    /// 뷰 그리기 (-> 이미지)
+    func displayImage(withApod apod: Apod, image: UIImage)
+    
+    /// 뷰 그리기 (-> 비디오)
+    func displayVideo(withApod apod: Apod, video: URLRequest)
     
     /// 뷰 초기화
     func clearUI()
@@ -88,27 +91,36 @@ final class Presenter {
                     print("========== Successfully fetched data ========== \n\(apod) \n")
                     
                     self.apod = apod
-                    guard let apod: Apod = self.apod else { return }
-                    
-                    loadImage(with: apod)
                     break;
                 case .failure(let error):
                     print(error.localizedDescription)
+                    break;
+                }
+                
+                guard let apod: Apod = self.apod,
+                      let mediaType: MediaType = MediaType(from: apod.url ?? "") else { return }
+                
+                switch mediaType {
+                case .image(_):
+                    loadImage(with: apod)
+                    break;
+                case .video(_):
+                    loadVideo(with: apod)
                     break;
                 }
             }
         }
     }
     
-    func loadImage(with apod: Apod) -> Void {
+    private func loadImage(with apod: Apod) -> Void {
         
-        ImageCacheManager.loadImage(from: apod.url ?? "") { [weak self] result in
+        ImageCacheManager.loadData(from: apod.url ?? "") { [weak self] result in
             guard let `self`: Presenter = self else { return }
             
             switch result {
             case .success(let image):
                 DispatchQueue.main.async {
-                    self.delegate?.displayUI(with: apod, image: image)
+                    self.delegate?.displayImage(withApod: apod, image: image)
                     self.delegate?.stopLoading()
                     self.timer?.invalidate()
                     self.timer = nil
@@ -118,6 +130,20 @@ final class Presenter {
                 print(error.localizedDescription)
                 break;
             }
+        }
+    }
+    
+    private func loadVideo(with apod: Apod) -> Void {
+        
+        DispatchQueue.main.async {
+            
+            guard let absoluteURL: URL = URL(string: apod.url ?? "") else { return }
+            let request: URLRequest = URLRequest(url: absoluteURL)
+            
+            self.delegate?.displayVideo(withApod: apod, video: request)
+            self.delegate?.stopLoading()
+            self.timer?.invalidate()
+            self.timer = nil
         }
     }
     
