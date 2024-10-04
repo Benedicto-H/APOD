@@ -21,7 +21,7 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
 
 |View (UIViewController)|ViewModel|
 |:---:|:---:|
-|<img src="https://github.com/user-attachments/assets/8762ba87-e941-4c1e-a651-8422669978b1">|<img src="https://github.com/user-attachments/assets/b202d109-b1e8-4890-bd66-af895d6cbba8">|
+|<img src="https://github.com/user-attachments/assets/cd29f62f-f26a-4c4d-871d-79c36d5460e0">|<img src="https://github.com/user-attachments/assets/2e510f97-c004-4f96-b91f-7f1b95161daa">|
 
 - Model: 서비스에 사용되어지는 원천 (source) 데이터
   
@@ -29,7 +29,7 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
   > View = UIView (Button, label etc.) + UIViewController
   
 - ViewModel: View와 Model의 중재자 역할로서, View의 Life Cycle에 관여하지 않음.
-  <br>
+<br>
   
 **MVVM Flow**: _View가 이벤트를 받으면 -> 이벤트가 뷰모델로 전달되어 상태를 변경 -> 자신의 상태를 View에게 알림 -> 바인딩을 통해 UI를 갱신_
 > 이 때, View가 ViewModel로부터 UI를 갱신하는 과정에서 **바인딩 (Binding)** 의 개념이 도입됨
@@ -86,7 +86,7 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
       // MARK: - Properties
       /// Observables: 값을 방출
       var apod: Observable<Apod?> = Observable<Apod?>(nil)
-      var cacheImage: Observable<UIImage?> = Observable<UIImage?>(nil)
+      var media: Observable<Any?> = Observable<Any?>(nil)
       var loadingTime: Observable<Int?> = Observable<Int?>(nil)
       var isLoading: Observable<Bool> = Observable<Bool>(false)
   
@@ -112,7 +112,7 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
         
           viewModel.isLoading.bind { [weak self] isLoading in
               guard let `self`: ViewController = self else { return }
-
+            
               DispatchQueue.main.async {
                   if (isLoading == true) {
                       self.activityIndicator.startAnimating()
@@ -131,11 +131,20 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
               }
           }
         
-          viewModel.cacheImage.bind { [weak self] image in
+          viewModel.media.bind { [weak self] value in
               guard let `self`: ViewController = self else { return }
             
-              DispatchQueue.main.async {
-                  self.apodImageView.image = image
+              if let image: UIImage = value as? UIImage {
+                  DispatchQueue.main.async {
+                      self.apodImageView.image = image
+                  }
+              } else if let videoURLRequest: URLRequest = value as? URLRequest {
+                  DispatchQueue.main.async {
+                    
+                      self.apodWebView.load(videoURLRequest)
+                      self.apodWebView.isHidden = false
+                      self.apodImageView.isHidden = true
+                  }
               }
           }
         
@@ -148,20 +157,6 @@ MVP에서는 View (UIViewController)와 Presenter가 1:1 관계를 가짐으로�
                   self.explanationLabel.text = apod?.explanation
               }
           }
-      }
-
-      // MARK: - Actions (Event Handler)
-      /// loadButton Action
-      @objc private func loadButtonPressed() -> Void {
-        
-          viewModel.fetchData()
-      }
-    
-      /// clearButton Action
-      @objc private func clearButtonPressed() -> Void {
-        
-          viewModel.clear()
-          timeLabel.isHidden = true
       }
   }
   ```
