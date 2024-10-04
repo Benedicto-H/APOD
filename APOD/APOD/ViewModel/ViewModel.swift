@@ -41,7 +41,7 @@ final class ViewModel {
         }
     }
     
-    func stopTimer() {
+    private func stopTimer() {
         
         isLoading.value = false
         count = 0
