@@ -21,7 +21,7 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
 
 |View (UIViewController)|Presenter|
 |:---:|:---:|
-|<img src="https://github.com/user-attachments/assets/514f2731-5e14-4480-a881-238d90c58efa">|<img src="https://github.com/user-attachments/assets/042bfb26-2ad0-41be-9be0-281eff28c33f">|
+|<img src="https://github.com/user-attachments/assets/514f2731-5e14-4480-a881-238d90c58efa">|<img src="https://github.com/user-attachments/assets/79b66280-91f2-47d9-9381-0d2ad448e9b1">|
 
 - Model: 서비스에 사용되어지는 원천 (source) 데이터
   
@@ -53,7 +53,7 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
       func updateTimer(count: Int)
     
       /// 뷰 그리기
-      func display(with apod: Apod, image: UIImage)
+      func displayUI(with apod: Apod, media: Any)
     
       /// 뷰 초기화
       func clear()
@@ -79,12 +79,23 @@ Cocoa MVC 패턴을 사용했을 때 ViewController (View + Controller)가 Massi
           self.timeLabel.text = "Loading Time: \(count)"
       }
     
-      func display(with apod: Apod, image: UIImage) {
-  
-          self.apodImageView.image = image
-          self.titleLabel.text = apod.title
-          self.dateLabel.text = apod.date
-          self.explanationLabel.text = apod.explanation
+      func displayUI(with apod: Apod, media: Any) {
+        
+          if let image: UIImage = media as? UIImage {
+            
+              self.apodImageView.image = image
+              self.titleLabel.text = apod.title
+              self.dateLabel.text = apod.date
+              self.explanationLabel.text = apod.explanation
+          } else if let videoURLRequest: URLRequest = media as? URLRequest {
+            
+              self.apodWebView.load(videoURLRequest)
+              self.apodWebView.isHidden = false
+              self.apodImageView.isHidden = true
+              self.titleLabel.text = apod.title
+              self.dateLabel.text = apod.date
+              self.explanationLabel.text = apod.explanation
+          }
       }
     
       func clear() -> Void {
