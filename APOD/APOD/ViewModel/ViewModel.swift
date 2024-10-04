@@ -19,7 +19,7 @@ final class ViewModel {
     // MARK: - Properties
     /// Observables: 값을 방출
     var apod: Observable<Apod?> = Observable<Apod?>(nil)
-    var cacheImage: Observable<UIImage?> = Observable<UIImage?>(nil)
+    var media: Observable<Any?> = Observable<Any?>(nil)
     var loadingTime: Observable<Int?> = Observable<Int?>(nil)
     var isLoading: Observable<Bool> = Observable<Bool>(false)
     
@@ -59,11 +59,12 @@ final class ViewModel {
                 
                 switch result {
                 case .success(let apod):
-                    print("========== Successfully fetched data ==========")
-                    
-                    loadImage(with: apod) {
+                    guard let mediaType: MediaType = MediaType(from: apod.url ?? "") else { return }
+                    loadMedia(with: apod, mediaType: mediaType) {
                         self.stopTimer()
                     }
+                    
+                    guard self.apod.value != nil else { return }
                     break;
                 case .failure(let error):
                     self.apod.value = nil
@@ -74,32 +75,42 @@ final class ViewModel {
         }
     }
     
-    private func loadImage(with apod: Apod, completion: @escaping () -> Void) -> Void {
+    private func loadMedia(with apod: Apod, mediaType: MediaType, completion: @escaping () -> Void) -> Void {
         
-        ImageCacheManager.loadImage(from: apod.url ?? "") { [weak self] result in
-            guard let `self`: ViewModel = self else { return }
-            
-            switch result {
-            case .success(let image):
-                print("========== Successfully loaded image ==========")
+        switch mediaType {
+        case .image(_):
+            ImageCacheManager.loadData(from: apod.url ?? "") { [weak self] result in
+                guard let `self`: ViewModel = self else { return }
                 
-                self.cacheImage.value = image
-                self.apod.value = apod
-                
-                completion()
-                break;
-            case .failure(let error):
-                self.cacheImage.value = nil
-                print(error.localizedDescription)
-                break;
+                switch result {
+                case .success(let image):
+                    self.apod.value = apod
+                    self.media.value = image
+                    
+                    completion()
+                    break;
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    break;
+                }
             }
+            break;
+        case .video(_):
+            guard let absoluteURL = URL(string: apod.url ?? "") else { return }
+            let request: URLRequest = URLRequest(url: absoluteURL)
+            
+            self.apod.value = apod
+            self.media.value = request
+            
+            completion()
+            break;
         }
     }
     
     func clear() -> Void {
         
         self.apod.value = nil
-        self.cacheImage.value = nil
+        self.media.value = nil
         self.loadingTime.value = 0
     }
 }

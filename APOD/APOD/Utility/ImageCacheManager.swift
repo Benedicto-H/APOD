@@ -11,10 +11,19 @@ import UIKit
 // MARK: - ImageCacheManager
 final class ImageCacheManager {
     
-    /// for `Memory Cache`
-    private static let imageCache: NSCache<NSString, UIImage> = NSCache<NSString, UIImage>()
+    /// `Memory Cache`
+    private static let imageCache: NSCache<NSString, UIImage> = {
+        let cache: NSCache<NSString, UIImage> = NSCache<NSString, UIImage>()
+        
+        /// 메모리 캐시 정책
+        /// case 1. `totalCostLimit`: 갯수와 상관없이, 저장되는 데이터들의 `cost`에 제한을 둠
+        /// case 2. `countLimit`: 저장되는 데이터의 갯수에 제한을 둠
+        cache.totalCostLimit = 1024 * 1024 * 10 //  totalCostLimit을 10MB로 설정
+        
+        return cache
+    }()
     
-    /// for `Disk Cache`
+    /// `Disk Cache`
     private static let diskCacheDirectory: URL = {
         /// 캐시 디렉토리 경로 설정
         guard let path: String = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
@@ -38,7 +47,117 @@ final class ImageCacheManager {
     
     private init() {}
     
-    static func loadImage(from url: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) {
+    // MARK: - Caching FLOW
+    /// `1. 메모리 캐시 검사 -> (실패) -> 2. 디스크 캐시 검사 -> (실패) -> 3. 메모리/디스크 캐시에 각각 데이터 추가 후 반환`
+    ///
+    /// 1. `Memory Cache 검사`
+    private static func checkMemoryCache(key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
+        
+        guard let image: UIImage = imageCache.object(forKey: key as NSString) else {
+            /// 메모리 캐시 검사 실패
+            print("+-----> 메모리 캐시에 이미지가 없음.")
+            return completion(.failure(.invalidMemoryCache))
+        }
+        
+        print("========== 이미지가 메모리 캐시에 존재 ========== \n")
+        
+        /// 있으면 반환
+        completion(.success(image))
+    }
+    
+    /// 2. `Disk Cache 검사`
+    private static func checkDiskCache(key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
+        
+        guard let image: UIImage = loadDiskCache(forKey: key),
+              let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else {
+            /// 디스크 캐시 검사 실패
+            print("+-----> 디스크 캐시에 이미지가 없음.")
+            return completion(.failure(.invalidDiskCache))
+        }
+        
+        print("========== 이미지가 디스크 캐시에 존재 ========== \n")
+        
+        /// 메모리 캐시에 저장될 데이터의 비용 (크기) 설정하여, 디스크 캐시의 이미지를 메모리 캐시에 저장
+        imageCache.setObject(image, forKey: key as NSString, cost: cost)
+        
+        /// 있으면 반환
+        completion(.success(image))
+    }
+    
+    /// 2-1. `디스크 캐시 로드`
+    private static func loadDiskCache(forKey key: String) -> UIImage? {
+        
+        let fileURL: URL = diskCacheDirectory.appending(path: key)
+        
+        /// `캐시 만료 정책`
+        /// 만료 시간을 체크하여 캐시 유효성 검사
+        guard let attributes: [FileAttributeKey: Any] = try? FileManager.default.attributesOfItem(atPath: fileURL.path()),
+              let modificationDate: Date = attributes[.modificationDate] as? Date else { return nil }
+        
+        /// 캐시 만료 타임 24시간 설정
+        let expirationTime: TimeInterval = (60 * 60) * 24
+        
+        if (Date().timeIntervalSince(modificationDate) > expirationTime) {
+            /// 만료된 경우 파일 삭제
+            try? FileManager.default.removeItem(at: fileURL)
+            
+            return nil
+        }
+        
+        guard let data: Data = try? Data(contentsOf: fileURL) else { return nil }
+        
+        return UIImage(data: data)
+    }
+    
+    /// 3. `메모리/디스크 캐시에 각각 데이터 추가 후 반환`
+    private static func saveDataIntoCache(url: URL, key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
+        
+        DispatchQueue.global(qos: .background).async {
+            print("========== 이미지가 캐시에 없으므로 다운로드 ==========")
+            
+            do {
+                /// 데이터 타입 반환, 이미지 변환
+                let data: Data = try Data(contentsOf: url)
+                guard let image: UIImage = UIImage(data: data) else {
+                    completion(.failure(.imageCreationFailed))
+                    return
+                }
+                
+                /// 3-1. `메모리 캐시 추가`
+                /// Condition: url을 통한 데이터의 크기가 메모리 캐시의 `totalCostLimit` 보다 크면 메모리 캐싱 불가능
+                if (data.count > imageCache.totalCostLimit) {
+                    print("+-----> 메모리 캐시에 데이터를 저장할 수 없음")
+                } else {
+                    /// `totalCostLimit`의 크기보다 작다면 메모리 캐싱
+                    guard let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else { return }
+                    
+                    imageCache.setObject(image, forKey: key as NSString, cost: cost)
+                    print("========== 이미지가 메모리 캐시에 추가됨! ==========")
+                }
+                
+                /// 3-2. `디스크 캐시 추가`
+                guard let imageData: Data = image.jpegData(compressionQuality: 1.0) else { return }
+                let fileURL: URL = diskCacheDirectory.appending(path: key)
+                
+                do {
+                    try imageData.write(to: fileURL)
+                    
+                    print("이미지 저장 경로: \(fileURL.path)")
+                    print("========== 이미지가 디스크 캐시에 추가됨! ==========")
+                    
+                    completion(.success(image))
+                } catch {
+                    print("이미지 저장 실패: \(error.localizedDescription)")
+                }
+            } catch {
+                print(error.localizedDescription)
+                completion(.failure(.imageLoadingFailed(error)))
+            }
+        }
+    }
+    
+    /// `캐시로부터 데이터 로드`
+    static func loadData(from url: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
         
         /// URL 형식으로 변환
         guard let url: URL = URL(string: url) else {
@@ -49,106 +168,46 @@ final class ImageCacheManager {
         /// Cache Key 생성
         let cacheKey: String = url.lastPathComponent
         
-        /// 캐시 관리 및 무효화
-        clearCache(forKey: cacheKey)
-        
-        /// `Memory Cache (imageCache)에 있으면 반환`
-        if let cachedImage: UIImage = imageCache.object(forKey: cacheKey as NSString) {
-            print("========== 이미지가 메모리 캐시에 존재 ========== \n")
-            
-            DispatchQueue.main.async {
-                completion(.success(cachedImage))
-            }
-            
-            return
-        }
-        
-        /// `Disk Cache (diskCacheDirectory)에 있으면 반환`
-        if let diskCachedImage: UIImage = loadDiskCache(forKey: cacheKey) {
-            print("========== 이미지가 디스크 캐시에 존재 ========== \n")
-            
-            /// 디스크 캐시의 이미지를 메모리 캐시에 저장
-            imageCache.setObject(diskCachedImage, forKey: cacheKey as NSString)
-            
-            DispatchQueue.main.async {
-                completion(.success(diskCachedImage))
-            }
-            
-            return
-        }
-        
-        /// `Memory Cache와 Disk Cache에 없으면 각각 추가 후 반환`
-        DispatchQueue.global(qos: .background).async {
-            print("========== 이미지가 캐시에 없으므로 다운로드 ========== \n")
-            
-            do {
-                /// 데이터 타입 반환, 이미지 변환
-                guard let data: Data = try? Data(contentsOf: url),
-                      let image: UIImage = UIImage(data: data) else {
-                    completion(.failure(.imageCreationFailed))
-                    return
-                }
-                
-                /// `Memory Cache에 추가`
-                imageCache.setObject(image, forKey: cacheKey as NSString)
-                
-                print("========== 이미지가 캐시에 추가됨! ========== \n")
-                
-                /// `Disk Cache에 추가`
-                saveDiskCache(image, forKey: cacheKey)
-                print("========== 이미지가 디스크 캐시에 추가됨! ========== \n")
-                
+        /// 1. `Memory Cache 검사`
+        print("********** 메모리 캐시 검사 시작 **********")
+        checkMemoryCache(key: cacheKey) { result in
+            switch result {
+            case .success(let memoryCachedImage):
                 DispatchQueue.main.async {
-                    completion(.success(image))
+                    completion(.success(memoryCachedImage))
                 }
-            } catch {
-                print(error.localizedDescription)
-                completion(.failure(.imageLoadingFailed(error)))
+                return
+            case .failure:
+                completion(.failure(.invalidMemoryCache))
             }
-        }
-    }
-    
-    private static func clearCache(forKey key: String) -> Void {
-        
-        /// 메모리 캐시 비우기
-        imageCache.removeAllObjects()
-        
-        /// 디스크 캐시에서 당일 이미지 데이터를 제외한 모든 데이터 삭제
-        do {
-            guard let fileURLs: [URL] = try? FileManager.default.contentsOfDirectory(at: diskCacheDirectory, includingPropertiesForKeys: nil) else { return }
-            for fileURL in fileURLs {
-                /// 캐시 키가 fileURL의 마지막 경로와 같으면 제외
-                if (fileURL.lastPathComponent != key) {
-                    try? FileManager.default.removeItem(at: fileURL)
-                }
-            }
-            print("디스크 캐시의 최신화 된 데이터 이외에는 다 삭제됨")
-        } catch {
-            print("디스크 캐시 지우기 실패: \(error.localizedDescription)")
-        }
-    }
-    
-    private static func loadDiskCache(forKey key: String) -> UIImage? {
-        
-        let fileURL: URL = diskCacheDirectory.appending(path: key)
-        guard let data: Data = try? Data(contentsOf: fileURL) else { return nil }
-        
-        var image: UIImage? = UIImage(data: data)
-        
-        return image
-    }
-    
-    private static func saveDiskCache(_ image: UIImage, forKey key: String) -> Void {
-        
-        guard let data: Data = image.jpegData(compressionQuality: 1.0) else { return }
-        let fileURL: URL = diskCacheDirectory.appending(path: key)
-        
-        do {
-            try data.write(to: fileURL)
             
-            print("이미지 저장 경로: \(fileURL.path)")
-        } catch {
-            print("이미지 저장 실패: \(error.localizedDescription)")
+            /// 2. `Disk Cache 검사`
+            print("********** 디스크 캐시 검사 시작 **********")
+            checkDiskCache(key: cacheKey) { result in
+                switch result {
+                case .success(let diskCachedImage):
+                    DispatchQueue.main.async {
+                        completion(.success(diskCachedImage))
+                    }
+                    return
+                case .failure:
+                    completion(.failure(.invalidDiskCache))
+                }
+                
+                /// 3. `Memory Cache와 Disk Cache에 각각 데이터 추가 후 반환`
+                print("********** 메모리/디스크 캐시 추가 시작 **********")
+                saveDataIntoCache(url: url, key: cacheKey) { result in
+                    switch result {
+                    case .success(let image):
+                        DispatchQueue.main.async {
+                            completion(.success(image))
+                        }
+                        return
+                    case.failure(let error):
+                        completion(.failure(error))
+                    }
+                }
+            }
         }
     }
 }

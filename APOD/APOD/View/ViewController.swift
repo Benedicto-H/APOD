@@ -7,9 +7,10 @@
 
 import UIKit
 import SwiftUI
+import WebKit
 
 // MARK: - View+Controller
-class ViewController: UIViewController {
+class ViewController: UIViewController, WKNavigationDelegate {
     
     // MARK: - Property
     lazy var viewModel: ViewModel = ViewModel()
@@ -35,6 +36,29 @@ class ViewController: UIViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
         return imageView
+    }()
+    
+    /// 웹 뷰
+    private lazy var apodWebView: WKWebView = {
+        let webView: WKWebView = WKWebView()
+        
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.contentMode = .scaleAspectFit
+        
+        return webView
+    }()
+    
+    /// 웹 뷰 인디케이터
+    private let webViewIndicator: UIActivityIndicatorView = {
+        let indicator: UIActivityIndicatorView = UIActivityIndicatorView()
+        
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+        indicator.hidesWhenStopped = true
+        indicator.style = UIActivityIndicatorView.Style.medium
+        indicator.color = UIColor.gray
+        
+        return indicator
     }()
     
     /// 제목 레이블
@@ -167,6 +191,8 @@ class ViewController: UIViewController {
         
         view.backgroundColor = .systemBackground
         
+        apodWebView.navigationDelegate = self
+        
         /// hStackView에 뷰 추가
         _ = [loadButton, clearButton, timeLabel].map { hStackView.addArrangedSubview($0) }
         
@@ -176,8 +202,11 @@ class ViewController: UIViewController {
         /// contentVIew에 explanationLabel 추가
         contentView.addSubview(explanationLabel)
         
+        /// 웹 뷰 숨김
+        apodWebView.isHidden = true
+        
         /// 모든 뷰 추가
-        [activityIndicator, apodImageView, titleLabel, dateLabel, scrollView, hStackView].forEach { self.view.addSubview($0) }
+        [activityIndicator, apodImageView, apodWebView, webViewIndicator, titleLabel, dateLabel, scrollView, hStackView].forEach { self.view.addSubview($0) }
     }
     
     /// AutoLayout
@@ -195,6 +224,16 @@ class ViewController: UIViewController {
             apodImageView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             apodImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             apodImageView.heightAnchor.constraint(equalToConstant: (view.safeAreaLayoutGuide.layoutFrame.height / 2) - 50),
+            
+            /// apodWebView Constraints
+            apodWebView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            apodWebView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            apodWebView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            apodWebView.heightAnchor.constraint(equalToConstant: (view.safeAreaLayoutGuide.layoutFrame.height / 2) - 50),
+            
+            /// webViewIndicator Constraints
+            webViewIndicator.centerXAnchor.constraint(equalTo: apodWebView.centerXAnchor),
+            webViewIndicator.centerYAnchor.constraint(equalTo: apodWebView.centerYAnchor),
             
             /// titleLabel Constraints
             titleLabel.leadingAnchor.constraint(equalTo: apodImageView.leadingAnchor, constant: 20),
@@ -245,7 +284,7 @@ class ViewController: UIViewController {
         
         viewModel.isLoading.bind { [weak self] isLoading in
             guard let `self`: ViewController = self else { return }
-
+            
             DispatchQueue.main.async {
                 if (isLoading == true) {
                     self.activityIndicator.startAnimating()
@@ -264,11 +303,20 @@ class ViewController: UIViewController {
             }
         }
         
-        viewModel.cacheImage.bind { [weak self] image in
+        viewModel.media.bind { [weak self] value in
             guard let `self`: ViewController = self else { return }
             
-            DispatchQueue.main.async {
-                self.apodImageView.image = image
+            if let image: UIImage = value as? UIImage {
+                DispatchQueue.main.async {
+                    self.apodImageView.image = image
+                }
+            } else if let videoURLRequest: URLRequest = value as? URLRequest {
+                DispatchQueue.main.async {
+                    
+                    self.apodWebView.load(videoURLRequest)
+                    self.apodWebView.isHidden = false
+                    self.apodImageView.isHidden = true
+                }
             }
         }
         
@@ -288,6 +336,7 @@ class ViewController: UIViewController {
     @objc private func loadButtonPressed() -> Void {
         
         viewModel.fetchData()
+        loadButton.isHidden = true
     }
     
     /// clearButton Action
@@ -295,9 +344,35 @@ class ViewController: UIViewController {
         
         viewModel.clear()
         timeLabel.isHidden = true
+        
+        if (viewModel.media.value == nil) {
+            apodImageView.image = nil
+            apodWebView.isHidden = true
+        }
+        
+        loadButton.isHidden = false
     }
-
-
+    
+    // MARK: - WKNavigationDelegate Methods
+    /// webView에 로딩 중일 때 인디케이터 활성화
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        self.webViewIndicator.startAnimating()
+        self.webViewIndicator.isHidden = false
+    }
+    
+    /// webView에 로딩이 완료시, 인디케이터 비활성화
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        self.webViewIndicator.stopAnimating()
+        self.webViewIndicator.isHidden = true
+    }
+    
+    /// webView에 로딩 실패 시, 인디케이터 비활성화
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
+        self.webViewIndicator.stopAnimating()
+        self.webViewIndicator.isHidden = true
+    }
+    
+    
 }
 
 #Preview(body: {
