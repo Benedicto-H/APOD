@@ -330,22 +330,23 @@ extension ViewController: PresenterDelegate {
         self.timeLabel.text = "Loading Time: \(count)"
     }
     
-    func displayImage(withApod apod: Apod, image: UIImage) {
+    func displayUI(with apod: Apod, media: Any) {
         
-        self.apodImageView.image = image
-        self.titleLabel.text = apod.title
-        self.dateLabel.text = apod.date
-        self.explanationLabel.text = apod.explanation
-    }
-    
-    func displayVideo(withApod apod: Apod, video: URLRequest) {
-        
-        self.apodWebView.load(video)
-        self.apodWebView.isHidden = false
-        self.apodImageView.isHidden = true
-        self.titleLabel.text = apod.title
-        self.dateLabel.text = apod.date
-        self.explanationLabel.text = apod.explanation
+        if let image: UIImage = media as? UIImage {
+            
+            self.apodImageView.image = image
+            self.titleLabel.text = apod.title
+            self.dateLabel.text = apod.date
+            self.explanationLabel.text = apod.explanation
+        } else if let videoURLRequest: URLRequest = media as? URLRequest {
+            
+            self.apodWebView.load(videoURLRequest)
+            self.apodWebView.isHidden = false
+            self.apodImageView.isHidden = true
+            self.titleLabel.text = apod.title
+            self.dateLabel.text = apod.date
+            self.explanationLabel.text = apod.explanation
+        }
     }
     
     func clearUI() -> Void {
