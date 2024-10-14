@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Custom Observable
 /// Generic 타입 T를 통해 어떠한 데이터 타입도 저장 되도록 함
-final class Observable<T> {
+final class CustomObservable<T> {
     
     // MARK: - Properties
     /// Behavioral Pattern: `Observer`

@@ -18,10 +18,10 @@ final class ViewModel {
     
     // MARK: - Properties
     /// Observables: 값을 방출
-    var apod: Observable<Apod?> = Observable<Apod?>(nil)
-    var media: Observable<Any?> = Observable<Any?>(nil)
-    var loadingTime: Observable<Int?> = Observable<Int?>(nil)
-    var isLoading: Observable<Bool> = Observable<Bool>(false)
+    var apod: CustomObservable<Apod?> = CustomObservable<Apod?>(nil)
+    var media: CustomObservable<Any?> = CustomObservable<Any?>(nil)
+    var loadingTime: CustomObservable<Int?> = CustomObservable<Int?>(nil)
+    var isLoading: CustomObservable<Bool> = CustomObservable<Bool>(false)
     
     private var count: Int = 0
     private var timer: Timer?
@@ -53,7 +53,11 @@ final class ViewModel {
         
         startTimer()
         
-        DispatchQueue.global(qos: .userInteractive).async {
+        // MARK: - Quality of Service Class
+        /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
+        DispatchQueue.global(qos: .userInitiated).async {
+            /// `User-interactive` vs `User-initiated`
+            /// ref. https://stackoverflow.com/questions/40176485/whats-the-difference-between-userinitiated-and-userinteractive-in-gcd
             APICaller.shared.fetchApod { [weak self] result in
                 guard let `self`: ViewModel = self else { return }
                 

@@ -9,11 +9,15 @@ import UIKit
 import SwiftUI
 import WebKit
 
-// MARK: - View+Controller
+import RxSwift
+
+// MARK: - View
 class ViewController: UIViewController, WKNavigationDelegate {
     
     // MARK: - Property
     lazy var viewModel: ViewModel = ViewModel()
+    
+    var disposeBag: DisposeBag = DisposeBag()
     
     // MARK: - Views
     /// 인디케이터 뷰
@@ -183,6 +187,61 @@ class ViewController: UIViewController, WKNavigationDelegate {
         applyConstraints()
         
         bindUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        APICaller.shared.fetchApodRx()
+        /// `subscribe(on:)`: Observable이 작동할 Scheduler (Thread)를 지정 (즉, 특정 Scheduler에서 작업을 수행하도록 Observable에게 지시)
+        /// 기본적으로 Observable은 subscribe()를 호출한 Thread에서 생성됨
+        /// ref. https://reactivex.io/documentation/operators/subscribeon.html
+            .subscribe(on: ConcurrentDispatchQueueScheduler(qos: .userInitiated))
+        /// `observe(on:)`: Observer가 Observable을 관찰할 Scheduler를 지정
+        /// ref. https://reactivex.io/documentation/operators/observeon.html
+            .observe(on: MainScheduler.instance)
+            .subscribe { apod in
+                // MARK: - Observation here
+                print(apod)
+            } onError: { error in
+                // MARK: - Observation here
+                print("***** error: \(error) *****")
+            } onCompleted: {
+                print("***** completed *****")
+            }.disposed(by: disposeBag)
+        
+        /// * 일반적으로 `subscribeOn(_:)은 Background Thread`에서, `observeOn(_:)은 Main Thread`에서 사용
+        
+        // MARK: - Scheduler의 종류
+        /// - `MainScheduler`
+        ///     [설명]: 메인 스레드에서 작업 실행
+        ///     [용도]: UI 업데이트와 같이 메인 스레드에서 실행해야 하는 작업에 적합
+        ///     [특징]: 모든 작업이 순차적으로 실행되므로, 스레드 안전성이 보장 (Thread-safe)
+        ///
+        /// - `ConcurrentMainScheduler`
+        ///     [설명]: 메인 스레드에서 비동기적으로 작업 실행
+        ///     [용도]: 비동기적으로 작업을 처리해야 하지만, 메인 스레드에서 실행해야 하는 경우에 사용
+        ///     [특징]: 병렬 처리 가능성이 있으므로, UI 업데이트에는 주의가 필요
+        ///
+        /// - `SerialDispatchQueueScheduler`
+        ///     [설명]: 디스패치 큐에서 순차적으로 작업 실행
+        ///     [용도]: 동시성을 피하고, 순차적으로 실행해야 하는 작업에 적합
+        ///     [특징]: 사용자 정의 큐를 사용 가능, 다양한 작업 환경에 맞게 설정 가능
+        ///
+        /// - `ConcurrentDispatchQueueScheduler`
+        ///     [설명]: 디스패치 큐에서 비동기적으로 작업 실행
+        ///     [용도]: 여러 작업을 동시에 실행해야 할 때 유용
+        ///     [특징]: 큐의 특성에 따라 동시 실행이 가능하므로, 멀티스레딩 환경에서 유용
+        ///
+        /// - `OperationQueueScheduler`
+        ///     [설명]: OperationQueue에서 작업을 실행
+        ///     [용도]: OperationQueue의 다양한 기능을 활용하여, 의존성 관리나 취소 기능이 필요한 작업에 적합
+        ///     [특징]: 작업의 우선순위를 지정할 수 있고, 작업의 취소나 의존성을 설정할 수 있음
+        ///
+        /// - `TestScheduler`
+        ///     [설명]: 테스트 환경에서 사용되는 스케줄러
+        ///     [용도]: 비동기 코드의 테스트를 쉽게 수행할 수 있게 해줌
+        ///     [특징]: 시간이 지연된 작업을 제어할 수 있어, 특정 시간에 발생하는 이벤트를 테스트 할 수 있음
     }
     
     // MARK: - Custom Methods (UI Setup, AutoLayout, Binding)
