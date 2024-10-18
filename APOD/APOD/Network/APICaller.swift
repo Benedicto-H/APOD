@@ -21,41 +21,56 @@ final class APICaller {
     
     func fetchApod(completion: @escaping (Result<Apod, APIError>) -> Void) -> Void {
         
-        guard let url: URL = URL(string: baseURL + "?api_key=\(apiKey)") else {
-            completion(.failure(APIError.invalidURL))
-            return
+        // MARK: - Quality of Service
+        /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
+        /// ref. https://unnnyong.com/2020/05/14/ios-thread-queue-gcd-qos/
+        DispatchQueue.global(qos: .utility).async {
+            guard let url: URL = URL(string: self.baseURL + "?api_key=\(self.apiKey)") else {
+                completion(.failure(APIError.invalidURL))
+                return
+            }
+            
+            var request: URLRequest = URLRequest(url: url)
+            
+            /// Request의 HTTP 메서드 설정
+            request.httpMethod = "GET"
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                /// dataTask(with:completionHandler:)의 completionHandler는 Background Thread에서 호출됨
+                /// ref. https://developer.apple.com/documentation/foundation/url_loading_system/fetching_website_data_into_memory
+                /// [Important] The completion handler is called on a different Grand Central Dispatch queue than the one that created the task.
+                
+                guard (error == nil) else { return }
+                
+                /// Response 상태 코드 검사
+                guard (200..<300).contains((response as? HTTPURLResponse)!.statusCode) else {
+                    completion(.failure(APIError.invalidResponse))
+                    return
+                }
+                
+                guard let data: Data = data else {
+                    completion(.failure(APIError.invalidData))
+                    return
+                }
+                
+                do {
+                    let decodedData: Apod = try JSONDecoder().decode(Apod.self, from: data)
+                    
+                    DispatchQueue.main.async {
+                        completion(.success(decodedData))
+                    }
+                } catch {
+                    print(error.localizedDescription)
+                    completion(.failure(APIError.decodingFailure))
+                }
+            }.resume()
         }
-        
-        var request: URLRequest = URLRequest(url: url)
-        
-        /// Request의 HTTP 메서드 설정
-        request.httpMethod = "GET"
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            /// Response 상태 코드 검사
-            guard (200..<300).contains((response as? HTTPURLResponse)!.statusCode) else {
-                completion(.failure(APIError.invalidResponse))
-                return
-            }
-            
-            guard let data: Data = data else {
-                completion(.failure(APIError.invalidData))
-                return
-            }
-            
-            do {
-                let decodedData: Apod = try JSONDecoder().decode(Apod.self, from: data)
-                completion(.success(decodedData))
-            } catch {
-                print(error.localizedDescription)
-                completion(.failure(APIError.decodingFailure))
-            }
-        }.resume()
     }
     
     func fetchApodRx() -> Observable<Apod> {
         /// `Cold Observable` 정의
-        /// (-> subscribe 되었을 때, 생성됨)
+        /// Observable은 실제로는 시퀀스 정의일뿐,  `Subscribe(구독) 되기 전에는 아무런 이벤트도 내보내지 않음`
+        /// (-> 즉, subscribe 되었을 때, 생성됨)
         return Observable.create { observer in
             // MARK: - Subscription here
             guard let url: URL = URL(string: self.baseURL + "?api_key=\(self.apiKey)") else {
@@ -68,10 +83,6 @@ final class APICaller {
             request.httpMethod = "GET"
             
             let task: URLSessionTask = URLSession.shared.dataTask(with: request) { data, response, error in
-                /// dataTask(with:completionHandler:)의 completionHandler는 Background Thread에서 호출됨
-                /// ref. https://developer.apple.com/documentation/foundation/url_loading_system/fetching_website_data_into_memory
-                /// [Important] The completion handler is called on a different Grand Central Dispatch queue than the one that created the task.
-                
                 guard (error == nil) else {
                     observer.on(.error(error!))
                     return

@@ -56,7 +56,8 @@ final class ImageCacheManager {
         guard let image: UIImage = imageCache.object(forKey: key as NSString) else {
             /// 메모리 캐시 검사 실패
             print("+-----> 메모리 캐시에 이미지가 없음.")
-            return completion(.failure(.invalidMemoryCache))
+            completion(.failure(.invalidMemoryCache))
+            return
         }
         
         print("========== 이미지가 메모리 캐시에 존재 ========== \n")
@@ -72,7 +73,8 @@ final class ImageCacheManager {
               let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else {
             /// 디스크 캐시 검사 실패
             print("+-----> 디스크 캐시에 이미지가 없음.")
-            return completion(.failure(.invalidDiskCache))
+            completion(.failure(.invalidDiskCache))
+            return
         }
         
         print("========== 이미지가 디스크 캐시에 존재 ========== \n")
@@ -112,99 +114,100 @@ final class ImageCacheManager {
     /// 3. `메모리/디스크 캐시에 각각 데이터 추가 후 반환`
     private static func saveDataIntoCache(url: URL, key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
         
-        DispatchQueue.global(qos: .background).async {
-            print("========== 이미지가 캐시에 없으므로 다운로드 ==========")
+        print("========== 이미지가 캐시에 없으므로 다운로드 ==========")
+        
+        do {
+            /// 데이터 타입 반환, 이미지 변환
+            let data: Data = try Data(contentsOf: url)
+            guard let image: UIImage = UIImage(data: data) else {
+                completion(.failure(.imageCreationFailed))
+                return
+            }
+            
+            /// 3-1. `메모리 캐시 추가`
+            /// Condition: url을 통한 데이터의 크기가 메모리 캐시의 `totalCostLimit` 보다 크면 메모리 캐싱 불가능
+            if (data.count > imageCache.totalCostLimit) {
+                print("+-----> 메모리 캐시에 데이터를 저장할 수 없음")
+            } else {
+                /// `totalCostLimit`의 크기보다 작다면 메모리 캐싱
+                guard let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else { return }
+                
+                imageCache.setObject(image, forKey: key as NSString, cost: cost)
+                print("========== 이미지가 메모리 캐시에 추가됨! ==========")
+            }
+            
+            /// 3-2. `디스크 캐시 추가`
+            guard let imageData: Data = image.jpegData(compressionQuality: 1.0) else { return }
+            let fileURL: URL = diskCacheDirectory.appending(path: key)
             
             do {
-                /// 데이터 타입 반환, 이미지 변환
-                let data: Data = try Data(contentsOf: url)
-                guard let image: UIImage = UIImage(data: data) else {
-                    completion(.failure(.imageCreationFailed))
-                    return
-                }
+                try imageData.write(to: fileURL)
                 
-                /// 3-1. `메모리 캐시 추가`
-                /// Condition: url을 통한 데이터의 크기가 메모리 캐시의 `totalCostLimit` 보다 크면 메모리 캐싱 불가능
-                if (data.count > imageCache.totalCostLimit) {
-                    print("+-----> 메모리 캐시에 데이터를 저장할 수 없음")
-                } else {
-                    /// `totalCostLimit`의 크기보다 작다면 메모리 캐싱
-                    guard let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else { return }
-                    
-                    imageCache.setObject(image, forKey: key as NSString, cost: cost)
-                    print("========== 이미지가 메모리 캐시에 추가됨! ==========")
-                }
+                print("이미지 저장 경로: \(fileURL.path)")
+                print("========== 이미지가 디스크 캐시에 추가됨! ==========")
                 
-                /// 3-2. `디스크 캐시 추가`
-                guard let imageData: Data = image.jpegData(compressionQuality: 1.0) else { return }
-                let fileURL: URL = diskCacheDirectory.appending(path: key)
-                
-                do {
-                    try imageData.write(to: fileURL)
-                    
-                    print("이미지 저장 경로: \(fileURL.path)")
-                    print("========== 이미지가 디스크 캐시에 추가됨! ==========")
-                    
-                    completion(.success(image))
-                } catch {
-                    print("이미지 저장 실패: \(error.localizedDescription)")
-                }
+                completion(.success(image))
             } catch {
-                print(error.localizedDescription)
-                completion(.failure(.imageLoadingFailed(error)))
+                print("이미지 저장 실패: \(error.localizedDescription)")
             }
+        } catch {
+            print(error.localizedDescription)
+            completion(.failure(.imageLoadingFailed(error)))
         }
     }
     
     /// `캐시로부터 데이터 로드`
     static func loadData(from url: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
         
-        /// URL 형식으로 변환
-        guard let url: URL = URL(string: url) else {
-            completion(.failure(.invalidURL))
-            return
-        }
-        
-        /// Cache Key 생성
-        let cacheKey: String = url.lastPathComponent
-        
-        /// 1. `Memory Cache 검사`
-        print("********** 메모리 캐시 검사 시작 **********")
-        checkMemoryCache(key: cacheKey) { result in
-            switch result {
-            case .success(let memoryCachedImage):
-                DispatchQueue.main.async {
-                    completion(.success(memoryCachedImage))
-                }
+        DispatchQueue.global(qos: .utility).async {
+            /// URL 형식으로 변환
+            guard let url: URL = URL(string: url) else {
+                completion(.failure(.invalidURL))
                 return
-            case .failure:
-                completion(.failure(.invalidMemoryCache))
             }
             
-            /// 2. `Disk Cache 검사`
-            print("********** 디스크 캐시 검사 시작 **********")
-            checkDiskCache(key: cacheKey) { result in
+            /// Cache Key 생성
+            let cacheKey: String = url.lastPathComponent
+            
+            /// 1. `Memory Cache 검사`
+            print("********** 메모리 캐시 검사 시작 **********")
+            
+            checkMemoryCache(key: cacheKey) { result in
                 switch result {
-                case .success(let diskCachedImage):
+                case .success(let memoryCachedImage):
                     DispatchQueue.main.async {
-                        completion(.success(diskCachedImage))
+                        completion(.success(memoryCachedImage))
                     }
                     return
                 case .failure:
-                    completion(.failure(.invalidDiskCache))
+                    completion(.failure(.invalidMemoryCache))
                 }
                 
-                /// 3. `Memory Cache와 Disk Cache에 각각 데이터 추가 후 반환`
-                print("********** 메모리/디스크 캐시 추가 시작 **********")
-                saveDataIntoCache(url: url, key: cacheKey) { result in
+                /// 2. `Disk Cache 검사`
+                print("********** 디스크 캐시 검사 시작 **********")
+                checkDiskCache(key: cacheKey) { result in
                     switch result {
-                    case .success(let image):
+                    case .success(let diskCachedImage):
                         DispatchQueue.main.async {
-                            completion(.success(image))
+                            completion(.success(diskCachedImage))
                         }
                         return
-                    case.failure(let error):
-                        completion(.failure(error))
+                    case .failure:
+                        completion(.failure(.invalidDiskCache))
+                    }
+                    
+                    /// 3. `Memory Cache와 Disk Cache에 각각 데이터 추가 후 반환`
+                    print("********** 메모리/디스크 캐시 추가 시작 **********")
+                    saveDataIntoCache(url: url, key: cacheKey) { result in
+                        switch result {
+                        case .success(let image):
+                            DispatchQueue.main.async {
+                                completion(.success(image))
+                            }
+                            return
+                        case.failure(let error):
+                            completion(.failure(error))
+                        }
                     }
                 }
             }

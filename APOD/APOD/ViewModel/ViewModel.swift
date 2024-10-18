@@ -53,8 +53,6 @@ final class ViewModel {
         
         startTimer()
         
-        // MARK: - Quality of Service Class
-        /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
         DispatchQueue.global(qos: .userInitiated).async {
             /// `User-interactive` vs `User-initiated`
             /// ref. https://stackoverflow.com/questions/40176485/whats-the-difference-between-userinitiated-and-userinteractive-in-gcd
@@ -88,10 +86,12 @@ final class ViewModel {
                 
                 switch result {
                 case .success(let image):
-                    self.apod.value = apod
-                    self.media.value = image
-                    
-                    completion()
+                    DispatchQueue.main.async {
+                        self.apod.value = apod
+                        self.media.value = image
+                        
+                        completion()
+                    }
                     break;
                 case .failure(let error):
                     print(error.localizedDescription)
@@ -100,13 +100,17 @@ final class ViewModel {
             }
             break;
         case .video(_):
-            guard let absoluteURL = URL(string: apod.url ?? "") else { return }
-            let request: URLRequest = URLRequest(url: absoluteURL)
-            
-            self.apod.value = apod
-            self.media.value = request
-            
-            completion()
+            DispatchQueue.global(qos: .utility).async {
+                guard let absoluteURL: URL = URL(string: apod.url ?? "") else { return }
+                let request: URLRequest = URLRequest(url: absoluteURL)
+                
+                DispatchQueue.main.async {
+                    self.apod.value = apod
+                    self.media.value = request
+                    
+                    completion()
+                }
+            }
             break;
         }
     }
