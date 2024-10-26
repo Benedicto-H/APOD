@@ -134,7 +134,7 @@ case .video(let videoURL):
   - MVP: [develop_mvp](https://github.com/Benedicto-H/APOD/tree/develop_mvp)
     
   - MVVM: [develop_mvvm](https://github.com/Benedicto-H/APOD/tree/develop_mvvm)
-  > 상태관리를 위한 ReactorKit 도입 예정
+  > 현재, 상태관리를 위한 ReactorKit 도입 중 [develop_reactorkit](https://github.com/Benedicto-H/APOD/tree/develop_reactorkit)
   
 - **GCD to Swift Concurrency**
   
