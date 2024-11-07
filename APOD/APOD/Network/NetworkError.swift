@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - 사용자 정의 API Error 타입
-enum APIError: Error {
+enum NetworkError: Error {
     case invalidURL
     case invalidResponse
     case invalidData

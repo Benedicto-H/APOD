@@ -308,7 +308,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
         /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
         /// ref. https://unnnyong.com/2020/05/14/ios-thread-queue-gcd-qos/
         DispatchQueue.global(qos: .userInteractive).async {
-            APICaller.shared.fetchApod { [weak self] result in
+            NetworkManager.shared.fetchApod { [weak self] result in
                 /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
                 
                 guard let `self`: ViewController = self else { return }

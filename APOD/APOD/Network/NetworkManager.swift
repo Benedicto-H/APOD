@@ -7,20 +7,20 @@
 
 import Foundation
 
-final class APICaller {
+final class NetworkManager {
     
     /// Creational Pattern: `Singleton`
-    static let shared: APICaller = APICaller()
+    static let shared: NetworkManager = NetworkManager()
     
     fileprivate let baseURL: String = "https://api.nasa.gov/planetary/apod"
     fileprivate let apiKey: String = Bundle.main.apiKey
     
     private init() {}
     
-    func fetchApod(completion: @escaping (Result<Apod, APIError>) -> Void) -> Void {
+    func fetchApod(completion: @escaping (Result<Apod, NetworkError>) -> Void) -> Void {
         
         guard let url: URL = URL(string: baseURL + "?api_key=\(apiKey)") else {
-            completion(.failure(APIError.invalidURL))
+            completion(.failure(NetworkError.invalidURL))
             return
         }
         
@@ -38,12 +38,12 @@ final class APICaller {
             
             /// Response 상태 코드 검사
             guard (200..<300).contains((response as? HTTPURLResponse)!.statusCode) else {
-                completion(.failure(APIError.invalidResponse))
+                completion(.failure(NetworkError.invalidResponse))
                 return
             }
             
             guard let data: Data = data else {
-                completion(.failure(APIError.invalidData))
+                completion(.failure(NetworkError.invalidData))
                 return
             }
             
@@ -52,7 +52,7 @@ final class APICaller {
                 completion(.success(decodedData))
             } catch {
                 print(error.localizedDescription)
-                completion(.failure(APIError.decodingFailure))
+                completion(.failure(NetworkError.decodingFailure))
             }
         }.resume()
     }
