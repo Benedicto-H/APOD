@@ -30,6 +30,12 @@ final class APICaller {
         request.httpMethod = "GET"
         
         URLSession.shared.dataTask(with: request) { data, response, error in
+            /// dataTask(with:completionHandler:)의 completionHandler는 Background Thread에서 호출됨
+            /// [Important] The completion handler is called on a different Grand Central Dispatch queue than the one that created the task.
+            /// ref. https://developer.apple.com/documentation/foundation/url_loading_system/fetching_website_data_into_memory
+            
+            guard (error == nil) else { return }
+            
             /// Response 상태 코드 검사
             guard (200..<300).contains((response as? HTTPURLResponse)!.statusCode) else {
                 completion(.failure(APIError.invalidResponse))
