@@ -40,7 +40,7 @@ final class MockURLSession: URLSessionable {
         
         /// resume()이 호출되면 completionHandler()가 호출
         sessionDataTask.resumeDidCall = {
-            if (self.makeRequestFail == false) {
+            if (self.makeRequestFail) {
                 completionHandler(nil, failureResponse, nil)
             } else {
                 completionHandler(JSONLoader.getDataFromFileURL(fileName: "MockAPOD"), successResponse, nil)
