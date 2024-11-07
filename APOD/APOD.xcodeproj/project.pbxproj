@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -22,6 +22,16 @@
 		93D487E02C8EDBB900AAB955 /* ImageCacheManagerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9364DD312CDCABBF0054D824 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 931676D42C8DBC11001FAE70 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 931676DB2C8DBC11001FAE70;
+			remoteInfo = APOD;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		931676DC2C8DBC11001FAE70 /* APOD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = APOD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		931676DF2C8DBC11001FAE70 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -31,6 +41,7 @@
 		931676EB2C8DBC13001FAE70 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		931676ED2C8DBC13001FAE70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		931676F42C8DC20A001FAE70 /* Secret.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secret.xcconfig; sourceTree = "<group>"; };
+		9364DD2D2CDCABBF0054D824 /* APODTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = APODTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		936AF8842CAC1D96005D36B6 /* MediaType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaType.swift; sourceTree = "<group>"; };
 		93D487D32C8EBE3D00AAB955 /* Apod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Apod.swift; sourceTree = "<group>"; };
 		93D487D52C8EBEDB00AAB955 /* APICaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APICaller.swift; sourceTree = "<group>"; };
@@ -41,8 +52,19 @@
 		93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManagerError.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9364DD2E2CDCABBF0054D824 /* APODTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = APODTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		931676D92C8DBC11001FAE70 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9364DD2A2CDCABBF0054D824 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -56,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				931676DE2C8DBC11001FAE70 /* APOD */,
+				9364DD2E2CDCABBF0054D824 /* APODTests */,
 				931676DD2C8DBC11001FAE70 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				931676DC2C8DBC11001FAE70 /* APOD.app */,
+				9364DD2D2CDCABBF0054D824 /* APODTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -158,6 +182,29 @@
 			productReference = 931676DC2C8DBC11001FAE70 /* APOD.app */;
 			productType = "com.apple.product-type.application";
 		};
+		9364DD2C2CDCABBF0054D824 /* APODTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9364DD352CDCABBF0054D824 /* Build configuration list for PBXNativeTarget "APODTests" */;
+			buildPhases = (
+				9364DD292CDCABBF0054D824 /* Sources */,
+				9364DD2A2CDCABBF0054D824 /* Frameworks */,
+				9364DD2B2CDCABBF0054D824 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9364DD322CDCABBF0054D824 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9364DD2E2CDCABBF0054D824 /* APODTests */,
+			);
+			name = APODTests;
+			packageProductDependencies = (
+			);
+			productName = APODTests;
+			productReference = 9364DD2D2CDCABBF0054D824 /* APODTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -165,11 +212,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1540;
+				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					931676DB2C8DBC11001FAE70 = {
 						CreatedOnToolsVersion = 15.4;
+					};
+					9364DD2C2CDCABBF0054D824 = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 931676DB2C8DBC11001FAE70;
 					};
 				};
 			};
@@ -187,6 +238,7 @@
 			projectRoot = "";
 			targets = (
 				931676DB2C8DBC11001FAE70 /* APOD */,
+				9364DD2C2CDCABBF0054D824 /* APODTests */,
 			);
 		};
 /* End PBXProject section */
@@ -198,6 +250,13 @@
 			files = (
 				931676E92C8DBC13001FAE70 /* Assets.xcassets in Resources */,
 				931676EC2C8DBC13001FAE70 /* Base in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9364DD2B2CDCABBF0054D824 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,7 +281,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9364DD292CDCABBF0054D824 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9364DD322CDCABBF0054D824 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 931676DB2C8DBC11001FAE70 /* APOD */;
+			targetProxy = 9364DD312CDCABBF0054D824 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		931676EA2C8DBC13001FAE70 /* LaunchScreen.storyboard */ = {
@@ -410,6 +484,50 @@
 			};
 			name = Release;
 		};
+		9364DD332CDCABBF0054D824 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jp.APODTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/APOD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/APOD";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Debug;
+		};
+		9364DD342CDCABBF0054D824 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jp.APODTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/APOD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/APOD";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -427,6 +545,15 @@
 			buildConfigurations = (
 				931676F12C8DBC13001FAE70 /* Debug */,
 				931676F22C8DBC13001FAE70 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9364DD352CDCABBF0054D824 /* Build configuration list for PBXNativeTarget "APODTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9364DD332CDCABBF0054D824 /* Debug */,
+				9364DD342CDCABBF0054D824 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
