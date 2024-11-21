@@ -47,9 +47,14 @@ extension Requestable {
         var urlQueryItems: [URLQueryItem] = []
         
         //  Encodable 타입의 object (JSON) -> Foundation object
-        guard let queryParams: [String : Any] = try queryParams?.toDictionary() else { throw NetworkError.toDictionaryError }
+//        guard let queryParams: [String : Any] = try queryParams?.toDictionary() else { throw NetworkError.toDictionaryError }
+        guard let queryParams: [String : String] = queryParams else {
+//            print("실패")
+            throw NetworkError.componentsError
+        }
         
-        //  Dictionary 타입의 Foundation object인 queryParams를 하나식 추출해서 urlQueryItems에 추가
+//        print("???: \(queryParams)")
+        //  Dictionary 타입의 Foundation object인 queryParams를 하나씩 추출해서 urlQueryItems에 추가
         queryParams.forEach { k, v in   //  k: Key, v: Value
             urlQueryItems.append(URLQueryItem(name: k, value: "\(v)"))
         }
@@ -57,7 +62,7 @@ extension Requestable {
         urlComponents.queryItems = !urlQueryItems.isEmpty ? urlQueryItems : nil
         
         guard let url: URL = urlComponents.url else { throw NetworkError.componentsError }
-        print("[URL]: \(url.absoluteString)")
+//        print("[URL]: \(url.absoluteString)")
         
         return url
     }

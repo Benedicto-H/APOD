@@ -12,7 +12,8 @@ enum NetworkError: LocalizedError {
     
     case unknownError
 //    case httpStatusError(HTTPStatusError)
-    case serverError(ServerError)
+//    case serverError(ServerError)
+    case invalidHttpStatusCode(Int)
     case componentsError
     case urlRequestError(Error)
     case parsingError(Error)
@@ -23,12 +24,13 @@ enum NetworkError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unknownError: return "알 수 없는 에러입니다."
+        case .invalidHttpStatusCode: return "status코드가 200~299가 아닙니다."
 //        case .httpStatusError(let httpStatusError):
 //            switch httpStatusError {
 //            case .clientError(let clientError): return "Client 에러입니다. \n[CODE]: \(clientError.rawValue)."
 //            case .serverError(let serverError): return "Server 에러입니다. \n[CODE]: \(serverError.rawValue)."
 //            }
-        case .serverError(let serverError): return "Status 코드 에러입니다. \(serverError) Code: \(serverError.rawValue)"
+//        case .serverError(let serverError): return "Status 코드 에러입니다. \(serverError) Code: \(serverError.rawValue)"
         case .componentsError: return "components 생성 에러가 발생했습니다."
         case .urlRequestError: return "URL Request 관련 에러가 발생했습니다."
         case .parsingError: return "데이터 Parsing 중 에러가 발생했습니다."

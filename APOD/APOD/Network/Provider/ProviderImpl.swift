@@ -9,9 +9,9 @@ import Foundation
 
 class ProviderImpl: Provider {
     
-    let session: URLSession
+    let session: URLSessionable
     
-    init(session: URLSession = URLSession.shared) {
+    init(session: URLSessionable = URLSession.shared) {
         self.session = session
     }
     
@@ -21,23 +21,22 @@ class ProviderImpl: Provider {
         do {
             let urlRequest: URLRequest = try endpoint.getURLRequest()
             
-            session.dataTask(with: urlRequest) { [weak self] (data, response, error) in
-                self?.checkError(with: data, response, error, completionHandler: { result in
-                    guard let self: ProviderImpl = self else { return }
-                    
+            session.dataTask(with: urlRequest) { (data, response, error) in
+                self.checkError(with: data, response, error) { result in
                     switch result {
                     case .success(let data):
                         completionHandler(self.decode(with: data))
                     case .failure(let error):
                         completionHandler(.failure(error))
                     }
-                })
-            }
+                }
+            }.resume()
         } catch {
             completionHandler(.failure(NetworkError.urlRequestError(error)))
         }
     }
     
+    /*
     func request(url: URL, completionHandler: @escaping (Result<Data, any Error>) -> Void) {
         
         session.dataTask(with: url) { [weak self] (data, response, error) in
@@ -46,15 +45,15 @@ class ProviderImpl: Provider {
             })
         }.resume()
     }
+     */
     
     // MARK: - PRIVATE Methods
     private func checkError(with data: Data?, _ response: URLResponse?, _ error: (any Error)?, completionHandler: @escaping (Result<Data, Error>) -> Void) -> Void {
         
         if let error: (any Error) = error { completionHandler(.failure(error)); return }
-        
         guard let response: HTTPURLResponse = response as? HTTPURLResponse else { completionHandler(.failure(NetworkError.unknownError)); return }
         
-        
+        /*
         guard (200..<300) ~= response.statusCode else {
             completionHandler(.failure(NetworkError.serverError(ServerError(rawValue: response.statusCode) ?? .unknown)))
 //            if ((400..<500) ~= response.statusCode) {
@@ -73,7 +72,17 @@ class ProviderImpl: Provider {
             
             return
         }
+         */
         
+        guard (200...299).contains(response.statusCode) else {
+            /*
+            completion(.failure(NetworkError.invalidHttpStatusCode(response.statusCode)))
+            return
+             */
+            
+            completionHandler(.failure(NetworkError.invalidHttpStatusCode(response.statusCode)))
+            return
+        }
         
         guard let data: Data = data else { completionHandler(.failure(NetworkError.emptyData)); return }
         

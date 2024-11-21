@@ -24,14 +24,16 @@ final class MockURLSession: URLSessionable {
     
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: Bundle.main.apiKey)
+        
         /// `성공:` callback으로 넘겨줄 Response
-        let successResponse: HTTPURLResponse? = HTTPURLResponse(url: URL(string: "https://api.nasa.gov/planetary/apod" + "?api_key=\(Bundle.main.apiKey)")!,
+        let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
                                                                 statusCode: 200,
                                                                 httpVersion: "2",
                                                                 headerFields: nil)
         
         /// `실패:` callback으로 넘겨줄 Response
-        let failureResponse: HTTPURLResponse? = HTTPURLResponse(url: URL(string: "https://api.nasa.gov/planetary/apod" + "?api_key=\(Bundle.main.apiKey)")!,
+        let failureResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
                                                                 statusCode: 401,
                                                                 httpVersion: "2",
                                                                 headerFields: nil)

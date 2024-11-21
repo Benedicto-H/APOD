@@ -17,7 +17,7 @@ final class NetworkManager {
     
 //    private init() {}
     
-    let session: URLSessionable
+    private let session: URLSessionable
     
     /// URLSession을 주입받음.
     /// 테스트 시 MockURLSession을 주입
@@ -37,7 +37,7 @@ final class NetworkManager {
     func fetchApod<T: Decodable>(dataType: T.Type, completion: @escaping (Result<Apod, NetworkError>) -> Void) -> Void {
         
         guard let url: URL = URL(string: baseURL + "?api_key=\(apiKey)") else {
-            completion(.failure(NetworkError.invalidURL))
+//            completion(.failure(NetworkError.invalidURL))
             return
         }
         
@@ -55,21 +55,24 @@ final class NetworkManager {
             
             /// Response 상태 코드 검사
             guard (200..<300).contains((response as? HTTPURLResponse)!.statusCode) else {
-                completion(.failure(NetworkError.invalidResponse))
+//                completion(.failure(NetworkError.invalidResponse))
                 return
             }
             
             guard let data: Data = data else {
-                completion(.failure(NetworkError.invalidData))
+//                completion(.failure(NetworkError.invalidData))
                 return
             }
             
             do {
                 let decodedData: Apod = try JSONDecoder().decode(Apod.self, from: data)
-                completion(.success(decodedData))
+                
+                DispatchQueue.main.async {
+                    completion(.success(decodedData))
+                }
             } catch {
                 print(error.localizedDescription)
-                completion(.failure(NetworkError.decodingFailure))
+//                completion(.failure(NetworkError.decodingFailure))
             }
         }.resume()
     }

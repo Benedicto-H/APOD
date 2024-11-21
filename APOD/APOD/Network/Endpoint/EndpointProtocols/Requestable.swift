@@ -18,7 +18,7 @@ protocol Requestable {
     var baseURL: String { get }
     var path: String { get }
     var method: HTTPMethod { get }
-    var queryParams: Encodable? { get }
+    var queryParams: [String : String]? { get }
     var bodyParams: Encodable? { get }
     var headers: [String : String]? { get }
     var sampleData: Data? { get }

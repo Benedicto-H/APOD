@@ -192,6 +192,23 @@ class ViewController: UIViewController, WKNavigationDelegate {
         applyConstraints()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: Bundle.main.apiKey)
+        
+        ProviderImpl().request(with: endpoint) { res in
+            switch res {
+            case .success(let response):
+                print("response: \(response)")
+                break
+            case .failure(let err):
+                print(err.localizedDescription)
+            }
+        }
+        
+    }
+    
     // MARK: - Custom Methods (UI Setup, AutoLayout)
     /// Setup Views
     private func setupUI() -> Void {
