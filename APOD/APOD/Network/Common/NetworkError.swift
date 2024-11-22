@@ -11,9 +11,7 @@ import Foundation
 enum NetworkError: LocalizedError {
     
     case unknownError
-//    case httpStatusError(HTTPStatusError)
-//    case serverError(ServerError)
-    case invalidHttpStatusCode(Int)
+    case httpStatusError(HTTPStatusError)
     case componentsError
     case urlRequestError(Error)
     case parsingError(Error)
@@ -24,13 +22,7 @@ enum NetworkError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unknownError: return "알 수 없는 에러입니다."
-        case .invalidHttpStatusCode: return "status코드가 200~299가 아닙니다."
-//        case .httpStatusError(let httpStatusError):
-//            switch httpStatusError {
-//            case .clientError(let clientError): return "Client 에러입니다. \n[CODE]: \(clientError.rawValue)."
-//            case .serverError(let serverError): return "Server 에러입니다. \n[CODE]: \(serverError.rawValue)."
-//            }
-//        case .serverError(let serverError): return "Status 코드 에러입니다. \(serverError) Code: \(serverError.rawValue)"
+        case .httpStatusError(let httpStatusError): return httpStatusError.errorDescription
         case .componentsError: return "components 생성 에러가 발생했습니다."
         case .urlRequestError: return "URL Request 관련 에러가 발생했습니다."
         case .parsingError: return "데이터 Parsing 중 에러가 발생했습니다."
@@ -42,31 +34,44 @@ enum NetworkError: LocalizedError {
 }
 
 // MARK: - HTTP 상태 에러 정의
-enum HTTPStatusError {
+enum HTTPStatusError: LocalizedError {
     case clientError(ClientError)
     case serverError(ServerError)
     
-    enum ClientError: Int {
+    var errorDescription: String? {
+        switch self {
+        case .clientError(let clientError): return clientError.errorDescription
+        case .serverError(let serverError): return serverError.errorDescription
+        }
+    }
+    
+    enum ClientError: Int, LocalizedError {
         case badRequest = 400
         case unauthorized = 401
         case forbidden = 403
         case notFound = 404
+        
+        var errorDescription: String? {
+            switch self {
+            case .badRequest: return "\(rawValue): Bad Request"
+            case .unauthorized: return "\(rawValue): Unauthorized"
+            case .forbidden: return "\(rawValue): Forbidden"
+            case .notFound: return "\(rawValue): Not Found"
+            }
+        }
     }
-
-    enum ServerError: Int {
+    
+    enum ServerError: Int, LocalizedError {
         case internalServerError = 500
         case notImplemented = 501
         case serviceUnavailable = 503
+        
+        var errorDescription: String? {
+            switch self {
+            case .internalServerError: return "\(rawValue): Internal Server Error"
+            case .notImplemented: return "\(rawValue): Not Implemented"
+            case .serviceUnavailable: return "\(rawValue): Service Unavailable"
+            }
+        }
     }
 }
-
-enum ServerError: Int {
-    case unknown
-    case badRequest = 400
-    case unauthorized = 401
-    case forbidden = 403
-    case notFound = 404
-    case unsplashError = 500
-    case unsplashError2 = 503
-}
-

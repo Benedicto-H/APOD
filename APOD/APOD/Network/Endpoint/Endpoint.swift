@@ -25,7 +25,7 @@ final class Endpoint<R>: RequestResponsable {
     var baseURL: String
     var path: String
     var method: HTTPMethod
-    var queryParams: [String : String]?
+    var queryParams: Encodable?
     var bodyParams: Encodable?
     var headers: [String : String]?
     var sampleData: Data?
@@ -33,7 +33,7 @@ final class Endpoint<R>: RequestResponsable {
     init(baseURL: String,
          path: String = "",
          method: HTTPMethod = .get,
-         queryParams: [String : String]? = [:],
+         queryParams: Encodable? = nil,
          bodyParams: Encodable? = nil,
          headers: [String : String]? = [:],
          sampleData: Data? = nil) {

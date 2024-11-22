@@ -195,18 +195,17 @@ class ViewController: UIViewController, WKNavigationDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: Bundle.main.apiKey)
+//        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
         
-        ProviderImpl().request(with: endpoint) { res in
-            switch res {
-            case .success(let response):
-                print("response: \(response)")
-                break
-            case .failure(let err):
-                print(err.localizedDescription)
-            }
-        }
-        
+//        ProviderImpl().request(with: endpoint) { res in
+//            switch res {
+//            case .success(let response):
+//                print("response: \(response)")
+//                break
+//            case .failure(let err):
+//                print(err.localizedDescription)
+//            }
+//        }
     }
     
     // MARK: - Custom Methods (UI Setup, AutoLayout)
@@ -325,7 +324,9 @@ class ViewController: UIViewController, WKNavigationDelegate {
         /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
         /// ref. https://unnnyong.com/2020/05/14/ios-thread-queue-gcd-qos/
         DispatchQueue.global(qos: .userInteractive).async {
-            NetworkManager.shared.fetchApod(dataType: Apod.self) { [weak self] result in
+            let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
+            
+            APIProvider.shared.request(with: endpoint) { [weak self] result in
                 /// `[weak self]`로 fetchApod()의 escaping closure (completion)가 ViewController를 약하게 참조 (Memory Leaks 방지)
                 
                 guard let `self`: ViewController = self else { return }

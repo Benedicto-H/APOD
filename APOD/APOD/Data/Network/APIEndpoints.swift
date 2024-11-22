@@ -9,12 +9,12 @@ import Foundation
 
 struct APIEndpoints {
     
-    static func getApod(with apiKey: String) -> Endpoint<Apod> {
+    static func getApod(with apodRequest: ApodRequestDTO) -> Endpoint<Apod> {
         return Endpoint(baseURL: "https://api.nasa.gov/",
                         path: "planetary/apod",
                         method: .get,
-                        queryParams: ["api_key" : apiKey],
-                        sampleData: NetworkResponseMock.apod
+                        queryParams: apodRequest,
+                        sampleData: JSONLoader.getDataFromFileURL(fileName: "MockData")
         )
     }
 }

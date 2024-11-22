@@ -12,7 +12,7 @@ import Foundation
 protocol URLSessionable {
     //  URLSession의 dataTask(with:completion:)을 그대로 정의
     func dataTask(with request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
-//    func dataTask(with url: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
+    func dataTask(with url: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
     
     /// `Pr Sendable`은 Multi-Threading 환경에서 동기화 작업 없이 공유 리소스에 동시에 접근하여 문제가 발생하는 상황인 `Data Races`의 리스크 없이,
     /// 임의의 동시 context에서 값을 안전하게 사용할 수 있게 해주는 `Threaad-Safe`한 유형의 Protocol

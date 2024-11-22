@@ -1,8 +1,8 @@
 //
 //  JSONLoader.swift
-//  APODTests
+//  APOD
 //
-//  Created by 홍진표 on 11/7/24.
+//  Created by 홍진표 on 11/22/24.
 //
 
 import Foundation
@@ -14,7 +14,7 @@ enum MockAPODLoaderError: Error {
     case decodeFail
 }
 
-final class JSONLoader {
+class JSONLoader {
     
     // MARK: - Mock Data Load FLOW
     /// `1. 파일 URL 얻어오기 -> 2. 파일 데이터를 Data 형식으로 읽기 -> 3. JSON 데이터인지 판별 -> 4. 지정 타입으로의 변환`
@@ -24,7 +24,7 @@ final class JSONLoader {
             let file: URL = try getFileURL(from: fileName)
             let data: Data = try getData(from: file)
             
-            try validateJsonData(from: data)
+            try validateJSONData(from: data)
             
             let decodedData: T = try decodeData(from: data, to: dataType)
             
@@ -56,7 +56,7 @@ final class JSONLoader {
     }
     
     /// `3. JSON 데이터인지 판별`
-    private static func validateJsonData(from data: Data) throws -> Void {
+    private static func validateJSONData(from data: Data) throws -> Void {
         
         guard let _ = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) else {
             throw MockAPODLoaderError.notJSON

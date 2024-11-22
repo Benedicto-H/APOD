@@ -21,5 +21,5 @@ protocol Provider {
     func request<R: Decodable, E: RequestResponsable>(with endpoint: E, completionHandler: @escaping (Result<R, Error>) -> Void) -> Void where E.Response == R  //  Encodable한 Request모델을 통해서 Decodable한 Response를 받는 request
     
     //  data를 얻는 request
-//    func request(url: URL, completionHandler: @escaping (Result<Data, Error>) -> Void) -> Void  //  단순히 URL을 request()로 주어, Data를 얻는 request()
+    func request(url: URL, completionHandler: @escaping (Result<Data, Error>) -> Void) -> Void  //  단순히 URL을 request()로 주어, Data를 얻는 request()
 }

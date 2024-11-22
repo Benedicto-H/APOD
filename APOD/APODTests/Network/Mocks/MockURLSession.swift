@@ -24,18 +24,18 @@ final class MockURLSession: URLSessionable {
     
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: Bundle.main.apiKey)
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         /// `성공:` callback으로 넘겨줄 Response
         let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
                                                                 statusCode: 200,
-                                                                httpVersion: "2",
+                                                                httpVersion: nil,
                                                                 headerFields: nil)
         
         /// `실패:` callback으로 넘겨줄 Response
         let failureResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
-                                                                statusCode: 401,
-                                                                httpVersion: "2",
+                                                                statusCode: 400,
+                                                                httpVersion: nil,
                                                                 headerFields: nil)
         
         let sessionDataTask: MockURLSessionDataTask = MockURLSessionDataTask()
@@ -45,7 +45,38 @@ final class MockURLSession: URLSessionable {
             if (self.makeRequestFail) {
                 completionHandler(nil, failureResponse, nil)
             } else {
-                completionHandler(JSONLoader.getDataFromFileURL(fileName: "MockAPOD"), successResponse, nil)
+                completionHandler(endpoint.sampleData, successResponse, nil)
+            }
+        }
+        
+        self.sessionDataTask = sessionDataTask
+        return sessionDataTask
+    }
+    
+    func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
+        
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
+        
+        /// `성공:` callback으로 넘겨줄 Response
+        let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
+                                                                statusCode: 200,
+                                                                httpVersion: nil,
+                                                                headerFields: nil)
+        
+        /// `실패:` callback으로 넘겨줄 Response
+        let failureResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
+                                                                statusCode: 401,
+                                                                httpVersion: nil,
+                                                                headerFields: nil)
+        
+        let sessionDataTask: MockURLSessionDataTask = MockURLSessionDataTask()
+        
+        /// resume()이 호출되면 completionHandler()가 호출
+        sessionDataTask.resumeDidCall = {
+            if (self.makeRequestFail) {
+                completionHandler(nil, failureResponse, nil)
+            } else {
+                completionHandler(endpoint.sampleData, successResponse, nil)
             }
         }
         
