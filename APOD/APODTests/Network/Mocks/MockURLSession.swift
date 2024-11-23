@@ -22,6 +22,7 @@ final class MockURLSession: URLSessionable {
         self.makeRequestFail = makeRequestFail
     }
     
+    // MARK: - [Pr] URLSessionable Methods Impl
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
         let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
@@ -40,7 +41,7 @@ final class MockURLSession: URLSessionable {
         
         let sessionDataTask: MockURLSessionDataTask = MockURLSessionDataTask()
         
-        /// resume()이 호출되면 completionHandler()가 호출
+        /// override func resume()이 호출되면 completionHandler()가 호출
         sessionDataTask.resumeDidCall = {
             if (self.makeRequestFail) {
                 completionHandler(nil, failureResponse, nil)

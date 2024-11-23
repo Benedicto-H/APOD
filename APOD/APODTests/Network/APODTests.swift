@@ -17,6 +17,8 @@ final class APODTests: XCTestCase {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         /// `setUpWithError()`: 각각의 test case가 실행되기 전마다 호출되어 각 테스트가 모두 같은 상태와 조건에서 실행될 수 있도록 만들어 줄 수 있는 메서드
         try super.setUpWithError()
+        
+        /// Mock 데이터 주입
         sut = APIProvider(session: MockURLSession())
     }
 
@@ -48,7 +50,7 @@ final class APODTests: XCTestCase {
         }
         
         //  When
-        sut?.request(with: endpoint, completionHandler: { result in
+        sut?.request(with: endpoint) { result in
             switch result {
             case .success(let apodResponse):
                 //  Then
@@ -60,7 +62,7 @@ final class APODTests: XCTestCase {
             }
             
             expectation.fulfill()
-        })
+        }
         
         wait(for: [expectation], timeout: 5.0)
     }
@@ -69,22 +71,23 @@ final class APODTests: XCTestCase {
         
         //  Given
         sut = APIProvider(session: MockURLSession(makeRequestFail: true))
+        
         let expectation: XCTestExpectation = XCTestExpectation()
         let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         //  When
-        sut?.request(with: endpoint, completionHandler: { result in
+        sut?.request(with: endpoint) { result in
             switch result {
             case .success(_):
                 XCTFail()
             case .failure(let error):
                 //  Then
                 print("***** 테스트 실패 *****")
-                print(error.localizedDescription)
+                XCTAssertEqual(error.localizedDescription, NetworkError.HTTPStatusError.ClientError.badRequest.errorDescription)
             }
             
             expectation.fulfill()
-        })
+        }
         
         wait(for: [expectation], timeout: 5.0)
     }

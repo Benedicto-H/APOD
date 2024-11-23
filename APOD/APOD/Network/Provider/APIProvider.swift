@@ -68,31 +68,29 @@ final class APIProvider: Provider {
         if let error: (any Error) = error { completionHandler(.failure(error)); return }
         guard let response: HTTPURLResponse = response as? HTTPURLResponse else { completionHandler(.failure(NetworkError.unknownError)); return }
         
-        handleHTTPStatusCode(statusCode: response.statusCode, completion: completionHandler)
-        
-        guard let data: Data = data else { completionHandler(.failure(NetworkError.emptyData)); return }
-        
-        completionHandler(.success(data))
-    }
-    
-    private func handleHTTPStatusCode(statusCode: Int, completion: @escaping (Result<Data, Error>) -> Void) -> Void {
-        
-        guard (200..<300).contains(statusCode) else {
-            //  Client Error 처리
-            if let clientError: HTTPStatusError.ClientError = HTTPStatusError.ClientError(rawValue: statusCode) {
-                completion(.failure(NetworkError.httpStatusError(.clientError(clientError))))
+        guard (200..<300).contains(response.statusCode) else {
+            
+            switch response.statusCode {
+            case (400..<500):
+                /// Client Error 처리
+                completionHandler(.failure(NetworkError.httpStatusError(.clientError(NetworkError.HTTPStatusError.ClientError(rawValue: response.statusCode)!))))
+                return
+            case (500..<600):
+                /// Server Error 처리
+                completionHandler(.failure(NetworkError.httpStatusError(.serverError(NetworkError.HTTPStatusError.ServerError(rawValue: response.statusCode)!))))
+                return
+            default:
+                completionHandler(.failure(NetworkError.unknownError))
                 return
             }
-            
-            //  Server Error 처리
-            if let serverError: HTTPStatusError.ServerError = HTTPStatusError.ServerError(rawValue: statusCode) {
-                completion(.failure(NetworkError.httpStatusError(.serverError(serverError))))
-                return
-            }
-            
-//            completion(.failure(NetworkError.unknownError))
+        }
+        
+        guard let data: Data = data else {
+            completionHandler(.failure(NetworkError.emptyData))
             return
         }
+        
+        completionHandler(.success(data))
     }
     
     private func decode<T: Decodable>(with data: Data) -> Result<T, Error> {
@@ -104,5 +102,4 @@ final class APIProvider: Provider {
             return .failure(NetworkError.emptyData)
         }
     }
-        
 }

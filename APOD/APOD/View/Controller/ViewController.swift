@@ -192,22 +192,6 @@ class ViewController: UIViewController, WKNavigationDelegate {
         applyConstraints()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-//        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
-        
-//        ProviderImpl().request(with: endpoint) { res in
-//            switch res {
-//            case .success(let response):
-//                print("response: \(response)")
-//                break
-//            case .failure(let err):
-//                print(err.localizedDescription)
-//            }
-//        }
-    }
-    
     // MARK: - Custom Methods (UI Setup, AutoLayout)
     /// Setup Views
     private func setupUI() -> Void {
@@ -307,6 +291,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
     @objc private func loadButtonPressed() -> Void {
         
         activityIndicator.startAnimating()
+        loadButton.isHidden = true
         
         /// 시간초 증가 (타이머 시작)
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
@@ -412,6 +397,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
         titleLabel.text = nil
         dateLabel.text = nil
         explanationLabel.text = nil
+        loadButton.isHidden = false
     }
     
     // MARK: - WKNavigationDelegate Methods

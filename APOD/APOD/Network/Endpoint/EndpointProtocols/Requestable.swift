@@ -15,6 +15,7 @@ enum HTTPMethod: String {
 }
 
 protocol Requestable {
+    
     var baseURL: String { get }
     var path: String { get }
     var method: HTTPMethod { get }
