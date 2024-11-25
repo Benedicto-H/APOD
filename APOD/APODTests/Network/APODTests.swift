@@ -67,7 +67,7 @@ final class APODTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
-    func test_request호출시_statusCode가200이아닐때() -> Void {
+    func test_request호출시_statusCode가400일때() -> Void {
         
         //  Given
         sut = APIProvider(session: MockURLSession(makeRequestFail: true))

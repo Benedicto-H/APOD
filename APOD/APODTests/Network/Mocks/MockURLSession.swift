@@ -10,8 +10,9 @@ import Foundation
 
 // MARK: - Test Double
 /// `Test Double`: 테스트할 때, production object를 대신함
-/// Test Double 중에 `Mock`은 호출에 대해 예상하는 결과를 받을 수 있도록 미리 프로그램 된 오브젝트
+/// Test Double 중에 `Mock`은 호출에 대해 예상하는 결과를 받을 수 있도록 미리 프로그래밍 된 오브젝트
 /// ref: http://xunitpatterns.com/Test%20Double.html
+/// ret: https://tecoble.techcourse.co.kr/post/2020-09-19-what-is-test-double/
 final class MockURLSession: URLSessionable {
     
     /// request 실패를 위한 Flag 변수
