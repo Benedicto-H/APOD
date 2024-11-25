@@ -11,13 +11,15 @@ import XCTest
 final class APODTests: XCTestCase {
 
     /// sut: System Under Test (즉, test를 할 타입)
-    var sut: NetworkManager?
+    var sut: Provider?
     
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         /// `setUpWithError()`: 각각의 test case가 실행되기 전마다 호출되어 각 테스트가 모두 같은 상태와 조건에서 실행될 수 있도록 만들어 줄 수 있는 메서드
         try super.setUpWithError()
-        sut = .init(session: MockURLSession())
+        
+        /// Mock 데이터 주입
+        sut = APIProvider(session: MockURLSession())
     }
 
     override func tearDownWithError() throws {
@@ -36,25 +38,25 @@ final class APODTests: XCTestCase {
     /// - 테스트 결과를 확인하는(`then`):  예정된 행위로 인해 예상한 결과를 도출하는지를 확인
     /// 단계로 구분하여 테스트의 흐름을 보다 쉽게 파악할 수 있음
     
-    func test_fetchApod호출시_statusCode가200일때() -> Void {
+    func test_request호출시_statusCode가200일때() throws -> Void {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        guard let data = JSONLoader.getDataFromFileURL(fileName: "MockAPOD"),
-              let response = try? JSONDecoder().decode(Apod.self, from: data) else {
-            print("Mock Data 없음")
-            return
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
+        
+        guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "MockData"),
+              let response: Apod = try? JSONDecoder().decode(Apod.self, from: data) else {
+            throw NetworkError.emptyData
         }
         
         //  When
-        sut?.fetchApod (dataType: Apod.self) { result in
+        sut?.request(with: endpoint) { result in
             switch result {
-            case .success(let apod):
-                
+            case .success(let apodResponse):
                 //  Then
                 print("***** 테스트 성공 *****")
-                XCTAssertEqual(apod.title, response.title)
-                XCTAssertEqual(apod.explanation, response.explanation)
+                XCTAssertEqual(apodResponse.title, response.title)
+                XCTAssertEqual(apodResponse.explanation, response.explanation)
             case .failure(let error):
                 XCTFail(error.localizedDescription)
             }
@@ -65,22 +67,23 @@ final class APODTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
-    func test_fetchApod호출시_statusCode가200이아닐때() -> Void {
+    func test_request호출시_statusCode가400일때() -> Void {
         
         //  Given
-        sut = .init(session: MockURLSession(makeRequestFail: true))
+        sut = APIProvider(session: MockURLSession(makeRequestFail: true))
+        
         let expectation: XCTestExpectation = XCTestExpectation()
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         //  When
-        sut?.fetchApod (dataType: Apod.self) { result in
+        sut?.request(with: endpoint) { result in
             switch result {
             case .success(_):
                 XCTFail()
             case .failure(let error):
-                
                 //  Then
                 print("***** 테스트 실패 *****")
-                XCTAssertEqual(error.localizedDescription, NetworkError.invalidResponse.localizedDescription)
+                XCTAssertEqual(error.localizedDescription, NetworkError.HTTPStatusError.ClientError.badRequest.errorDescription)
             }
             
             expectation.fulfill()
