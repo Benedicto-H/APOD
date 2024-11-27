@@ -76,8 +76,25 @@
 		93E46C5F2CF0A3B400662FB8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = en; path = en.lproj/MockData.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9390D0AF2CF483FC00D21D50 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Network/Mocks/MockURLProtocol.swift,
+			);
+			target = 931676DB2C8DBC11001FAE70 /* APOD */;
+		};
+		9390D0B02CF483FC00D21D50 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Network/Mocks/MockURLProtocol.swift,
+			);
+			target = 9364DD2C2CDCABBF0054D824 /* APODTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9364DD2E2CDCABBF0054D824 /* APODTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = APODTests; sourceTree = "<group>"; };
+		9364DD2E2CDCABBF0054D824 /* APODTests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9390D0AF2CF483FC00D21D50 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 9390D0B02CF483FC00D21D50 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = APODTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
