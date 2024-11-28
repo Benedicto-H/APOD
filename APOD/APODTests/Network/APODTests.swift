@@ -47,11 +47,50 @@ final class APODTests: XCTestCase {
     /// - 테스트 결과를 확인하는(`then`):  예정된 행위로 인해 예상한 결과를 도출하는지를 확인
     /// 단계로 구분하여 테스트의 흐름을 보다 쉽게 파악할 수 있음
     
+    func test_getMarsRoversPhotos_when_Success() throws -> Void {
+        
+        //  Given
+        let expectation: XCTestExpectation = XCTestExpectation()
+        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosRequestDTO())
+        
+        guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "PhotoResponseMock"),
+              let response: MarsRoversPhoto = try? JSONDecoder().decode(MarsRoversPhoto.self, from: data) else {
+            throw NetworkError.emptyData
+        }
+        
+        MockURLProtocol.requestHandler = { request in
+            /// `성공:` callback으로 넘겨줄 Response
+            let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
+                                                                    statusCode: 200,
+                                                                    httpVersion: nil,
+                                                                    headerFields: nil)
+            
+            return (endpoint.sampleData, successResponse, nil)
+        }
+        
+        //  When
+        sut?.request(with: endpoint) { result in
+            switch result {
+            case .success(let marsRoversPhotoResponse):
+                //  Then
+                print("***** 테스트 성공 *****")
+                print("marsRoversPhotoResponse: \(marsRoversPhotoResponse)")
+                XCTAssertEqual(marsRoversPhotoResponse.photos?.first?.id, response.photos?.first?.id)
+            case .failure(let error):
+                XCTFail(error.localizedDescription)
+            }
+            
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 5.0)
+    }
+    
     func test_request호출시_statusCode가200일때() throws -> Void {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "MockData"),
               let response: Apod = try? JSONDecoder().decode(Apod.self, from: data) else {
@@ -93,7 +132,7 @@ final class APODTests: XCTestCase {
 //        sut = APIProvider(session: MockURLSession(makeRequestFail: true))
         
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodRequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
         
         MockURLProtocol.requestHandler = { request in
             /// `실패:` callback으로 넘겨줄 Response

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ApodRequestDTO: Encodable {
+struct RequestDTO: Encodable {
     
     let apiKey: String = Bundle.main.apiKey
     

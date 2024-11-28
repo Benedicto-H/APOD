@@ -23,13 +23,15 @@
 		934071AE2CEDD98B000CEF79 /* APIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 934071AD2CEDD98B000CEF79 /* APIEndpoints.swift */; };
 		9364DD372CDCB16F0054D824 /* URLSessionable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9364DD362CDCB16F0054D824 /* URLSessionable.swift */; };
 		936AF8852CAC1D96005D36B6 /* MediaType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 936AF8842CAC1D96005D36B6 /* MediaType.swift */; };
+		93CF83752CF72C4F007E25DA /* MarsRoversPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93CF83742CF72C4F007E25DA /* MarsRoversPhoto.swift */; };
+		93CF83782CF7326B007E25DA /* PhotoResponseMock.json in Resources */ = {isa = PBXBuildFile; fileRef = 93CF83762CF7326B007E25DA /* PhotoResponseMock.json */; };
 		93D487D42C8EBE3D00AAB955 /* Apod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487D32C8EBE3D00AAB955 /* Apod.swift */; };
 		93D487D82C8EBF4E00AAB955 /* Bundle+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487D72C8EBF4E00AAB955 /* Bundle+.swift */; };
 		93D487DA2C8EBFC300AAB955 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487D92C8EBFC300AAB955 /* NetworkError.swift */; };
 		93D487DC2C8ED19000AAB955 /* UIColor+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DB2C8ED19000AAB955 /* UIColor+.swift */; };
 		93D487DE2C8ED75500AAB955 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DD2C8ED75500AAB955 /* ImageCacheManager.swift */; };
 		93D487E02C8EDBB900AAB955 /* ImageCacheManagerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */; };
-		93E46C592CF0611E00662FB8 /* ApodRequestDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E46C582CF0611E00662FB8 /* ApodRequestDTO.swift */; };
+		93E46C592CF0611E00662FB8 /* RequestDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E46C582CF0611E00662FB8 /* RequestDTO.swift */; };
 		93E46C5D2CF0A31600662FB8 /* JSONLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E46C5C2CF0A31600662FB8 /* JSONLoader.swift */; };
 		93E46C602CF0A3B400662FB8 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 93E46C5E2CF0A3B400662FB8 /* MockData.json */; };
 /* End PBXBuildFile section */
@@ -65,13 +67,15 @@
 		9364DD2D2CDCABBF0054D824 /* APODTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = APODTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9364DD362CDCB16F0054D824 /* URLSessionable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionable.swift; sourceTree = "<group>"; };
 		936AF8842CAC1D96005D36B6 /* MediaType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaType.swift; sourceTree = "<group>"; };
+		93CF83742CF72C4F007E25DA /* MarsRoversPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarsRoversPhoto.swift; sourceTree = "<group>"; };
+		93CF83772CF7326B007E25DA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = en; path = en.lproj/PhotoResponseMock.json; sourceTree = "<group>"; };
 		93D487D32C8EBE3D00AAB955 /* Apod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Apod.swift; sourceTree = "<group>"; };
 		93D487D72C8EBF4E00AAB955 /* Bundle+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+.swift"; sourceTree = "<group>"; };
 		93D487D92C8EBFC300AAB955 /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
 		93D487DB2C8ED19000AAB955 /* UIColor+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+.swift"; sourceTree = "<group>"; };
 		93D487DD2C8ED75500AAB955 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
 		93D487DF2C8EDBB900AAB955 /* ImageCacheManagerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManagerError.swift; sourceTree = "<group>"; };
-		93E46C582CF0611E00662FB8 /* ApodRequestDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApodRequestDTO.swift; sourceTree = "<group>"; };
+		93E46C582CF0611E00662FB8 /* RequestDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestDTO.swift; sourceTree = "<group>"; };
 		93E46C5C2CF0A31600662FB8 /* JSONLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLoader.swift; sourceTree = "<group>"; };
 		93E46C5F2CF0A3B400662FB8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = en; path = en.lproj/MockData.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -257,6 +261,7 @@
 			isa = PBXGroup;
 			children = (
 				93D487D32C8EBE3D00AAB955 /* Apod.swift */,
+				93CF83742CF72C4F007E25DA /* MarsRoversPhoto.swift */,
 			);
 			path = Entity;
 			sourceTree = "<group>";
@@ -275,6 +280,7 @@
 				936AF8842CAC1D96005D36B6 /* MediaType.swift */,
 				93E46C5C2CF0A31600662FB8 /* JSONLoader.swift */,
 				93E46C5E2CF0A3B400662FB8 /* MockData.json */,
+				93CF83762CF7326B007E25DA /* PhotoResponseMock.json */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -290,7 +296,7 @@
 		93E46C722CF0A82E00662FB8 /* Apod */ = {
 			isa = PBXGroup;
 			children = (
-				93E46C582CF0611E00662FB8 /* ApodRequestDTO.swift */,
+				93E46C582CF0611E00662FB8 /* RequestDTO.swift */,
 			);
 			path = Apod;
 			sourceTree = "<group>";
@@ -398,6 +404,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				931676E92C8DBC13001FAE70 /* Assets.xcassets in Resources */,
+				93CF83782CF7326B007E25DA /* PhotoResponseMock.json in Resources */,
 				931676EC2C8DBC13001FAE70 /* Base in Resources */,
 				93E46C602CF0A3B400662FB8 /* MockData.json in Resources */,
 			);
@@ -419,7 +426,8 @@
 			files = (
 				933ED00C2CE0A35400F4FD9D /* Requestable.swift in Sources */,
 				931676E42C8DBC11001FAE70 /* ViewController.swift in Sources */,
-				93E46C592CF0611E00662FB8 /* ApodRequestDTO.swift in Sources */,
+				93E46C592CF0611E00662FB8 /* RequestDTO.swift in Sources */,
+				93CF83752CF72C4F007E25DA /* MarsRoversPhoto.swift in Sources */,
 				933ED0122CE0A80100F4FD9D /* Provider.swift in Sources */,
 				93D487DC2C8ED19000AAB955 /* UIColor+.swift in Sources */,
 				93D487D42C8EBE3D00AAB955 /* Apod.swift in Sources */,
@@ -466,6 +474,14 @@
 				931676EB2C8DBC13001FAE70 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		93CF83762CF7326B007E25DA /* PhotoResponseMock.json */ = {
+			isa = PBXVariantGroup;
+			children = (
+				93CF83772CF7326B007E25DA /* en */,
+			);
+			name = PhotoResponseMock.json;
 			sourceTree = "<group>";
 		};
 		93E46C5E2CF0A3B400662FB8 /* MockData.json */ = {
