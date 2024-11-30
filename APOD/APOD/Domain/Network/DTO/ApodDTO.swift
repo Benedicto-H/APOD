@@ -1,13 +1,13 @@
 //
-//  ApodRequestDTO.swift
+//  ApodDTO.swift
 //  APOD
 //
-//  Created by 홍진표 on 11/22/24.
+//  Created by 홍진표 on 11/30/24.
 //
 
 import Foundation
 
-struct RequestDTO: Encodable {
+struct ApodDTO: Encodable, APIKeyProvider {
     
     let apiKey: String = Bundle.main.apiKey
     

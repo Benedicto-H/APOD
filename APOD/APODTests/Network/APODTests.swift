@@ -47,11 +47,11 @@ final class APODTests: XCTestCase {
     /// - 테스트 결과를 확인하는(`then`):  예정된 행위로 인해 예상한 결과를 도출하는지를 확인
     /// 단계로 구분하여 테스트의 흐름을 보다 쉽게 파악할 수 있음
     
-    func test_getMarsRoversPhotos_when_Success() throws -> Void {
+    func test_getMarsRoversPhotos호출시_statusCode가200일때() throws -> Void {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosRequestDTO())
+        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosDTO())
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "PhotoResponseMock"),
               let response: MarsRoversPhoto = try? JSONDecoder().decode(MarsRoversPhoto.self, from: data) else {
@@ -86,11 +86,11 @@ final class APODTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
-    func test_request호출시_statusCode가200일때() throws -> Void {
+    func test_getApod호출시_statusCode가200일때() throws -> Void {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "MockData"),
               let response: Apod = try? JSONDecoder().decode(Apod.self, from: data) else {
@@ -126,13 +126,13 @@ final class APODTests: XCTestCase {
         wait(for: [expectation], timeout: 5.0)
     }
     
-    func test_request호출시_statusCode가400일때() -> Void {
+    func test_getApod호출시_statusCode가400일때() -> Void {
         
         //  Given
 //        sut = APIProvider(session: MockURLSession(makeRequestFail: true))
         
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
         
         MockURLProtocol.requestHandler = { request in
             /// `실패:` callback으로 넘겨줄 Response

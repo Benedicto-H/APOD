@@ -20,7 +20,7 @@ struct MarsRoversPhoto: Codable {
         var rover: Rover?
         
         enum CodingKeys: String, CodingKey {
-            case id, sol, camera
+            case id, sol, camera, rover
             case imgSrc = "img_src"
             case earthDate = "earth_date"
         }
@@ -52,7 +52,7 @@ struct MarsRoversPhoto: Codable {
             var cameras: [Camera]?
             
             enum CodingKeys: String, CodingKey {
-                case id, name, status
+                case id, name, status, cameras
                 case landingDate = "landing_date"
                 case launchDate = "launch_date"
                 case maxSol = "max_sol"
