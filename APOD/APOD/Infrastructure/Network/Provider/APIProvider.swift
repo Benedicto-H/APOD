@@ -10,20 +10,12 @@ import Foundation
 // MARK: - ProviderImpl
 final class APIProvider: Provider {
     
-    /// `class var` vs `static let(var)`
-    /// class var: 클래스 수준의 속성. 즉, 클래스의 모든 인스턴스가 공유될 수 있고 반드시 하나의 인스턴스를 가질 필요가 없음 (Anti-Singleton)
-    /// static let(var): Singleton
-    class var shared: APIProvider {
-        get {
-            return APIProvider()
-        }
-    }
-    
+    static let shared: APIProvider = APIProvider()
     private let session: URLSessionable
     
     /// URLSession을 주입받음.
     /// 테스트 시 MockURLSession을 주입.
-    init(session: URLSessionable = URLSession.shared) {
+    private init(session: URLSessionable = URLSession.shared) {
         self.session = session
     }
     
