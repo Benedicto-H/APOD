@@ -10,8 +10,13 @@ import Foundation
 struct MarsRoversPhotosDTO: Encodable, APIKeyProvider {
     
     let apiKey: String = Bundle.main.apiKey
-    let sol: Int = 1000
-    let camera: String = "fhaz"
+    let sol: Int
+    let camera: String
+    
+    init(sol: Int, camera: String) {
+        self.sol = sol
+        self.camera = camera
+    }
     
     enum CodingKeys: String, CodingKey {
         case sol, camera

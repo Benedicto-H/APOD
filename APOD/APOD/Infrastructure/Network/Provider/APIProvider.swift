@@ -15,7 +15,7 @@ final class APIProvider: Provider {
     
     /// URLSession을 주입받음.
     /// 테스트 시 MockURLSession을 주입.
-    private init(session: URLSessionable = URLSession.shared) {
+    init(session: URLSessionable = URLSession.shared) {
         self.session = session
     }
     

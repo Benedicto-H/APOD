@@ -51,7 +51,7 @@ final class APODTests: XCTestCase {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosDTO())
+        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosDTO(sol: 1000, camera: "fhaz"))
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "PhotoResponseMock"),
               let response: MarsRoversPhoto = try? JSONDecoder().decode(MarsRoversPhoto.self, from: data) else {
