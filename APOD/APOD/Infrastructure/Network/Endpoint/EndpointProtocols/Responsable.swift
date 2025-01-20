@@ -8,7 +8,7 @@
 import Foundation
 
 //  Endpoint를 생성할 때, 타입을 주입하여 Provider의 request 제네릭에 적용
-protocol Responsable {
+protocol Responsable<Response> {
     associatedtype Response
     
     /**

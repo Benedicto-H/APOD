@@ -10,14 +10,18 @@ import Foundation
 // MARK: - Protocol for MOCK/REAL
 /// Network Test 시, URLSession의 동작을 모방하기 위한 Protocol
 protocol URLSessionable {
-    //  URLSession의 dataTask(with:completion:)을 그대로 정의
+    //  URLSession의 dataTask(with:completion:)를 그대로 정의
     func dataTask(with request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
     func dataTask(with url: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
+    
+    //  URLSession의 data(for:)를 정의
+    /// Convenience method to load data using a URLRequest, creates and resumes a URLSessionDataTask internally.
+    func data(for request: URLRequest) async throws -> (Data, URLResponse)
     
     /**
      `Pr Sendable`: Data Races의 리스크 없이, 임의의 동시 context에서 값을 안전하게 사용할 수 있게 해주는 `Thread-Safe`한 유형의 Protocol
      
-     Functions 및 Closures에서는 `@Sendable`로 표시하며, 함수난 클로저가 캡처하는 모든 값은 sendable이어야 한다.
+     Functions 및 Closures에서는 `@Sendable`로 표시하며, 함수나 클로저가 캡처하는 모든 값은 sendable이어야 한다.
      또한, sendable 클로저는 `값 캡처 (by-value capture)`만을 사용해야 하며, 캡처된 값은 sendable 유형이어야 한다.
      
      ///    ex.

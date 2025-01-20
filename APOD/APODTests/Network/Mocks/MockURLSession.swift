@@ -26,7 +26,7 @@ final class MockURLSession: URLSessionable {
     // MARK: - [Pr] URLSessionable Methods Impl
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
         
         /// `성공:` callback으로 넘겨줄 Response
         let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
@@ -57,7 +57,7 @@ final class MockURLSession: URLSessionable {
     
     func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: RequestDTO())
+        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
         
         /// `성공:` callback으로 넘겨줄 Response
         let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),

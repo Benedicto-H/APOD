@@ -10,7 +10,7 @@ import SwiftUI
 import WebKit
 
 // MARK: - View+Controller
-class ViewController: UIViewController, WKNavigationDelegate {
+final class ViewController: UIViewController {
     
     // MARK: - Properties
     /// Behavioral Pattern: `Observer`
@@ -285,6 +285,12 @@ class ViewController: UIViewController, WKNavigationDelegate {
         
         NSLayoutConstraint.activate(constraints)
     }
+
+
+}
+
+// MARK: - ViewController+
+extension ViewController {
     
     // MARK: - Actions (Event Handler)
     /// loadButton Action
@@ -305,6 +311,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
             }
         }
         
+        /*
+        /// `completionhandler`
         /// `QoS (Quality of Service)`
         /// ref. https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
         /// ref. https://unnnyong.com/2020/05/14/ios-thread-queue-gcd-qos/
@@ -336,7 +344,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
                 switch mediaType {
                     /// 1. 이미지인 경우
                 case .image(_):
-                    ImageCacheManager.loadData(from: apod.url ?? "") { [weak self] result in
+                    ImageCacheManager.shared.getImage(with: apod.url ?? "") { [weak self] result in
                         guard let `self`: ViewController = self else { return }
                         
                         switch result {
@@ -385,6 +393,21 @@ class ViewController: UIViewController, WKNavigationDelegate {
                 }
             }
         }
+         */
+        
+        /// `Async/await`
+        Task(priority: .utility) {
+            let endpoint = APIEndpoints.getApod(with: ApodDTO())
+            
+            let apodResponse = try await APIProvider.shared.request(with: endpoint)
+            print("========== Successfully fetched data ========== \n\(apodResponse) \n")
+            self.apod = apodResponse
+            
+            guard let apod = self.apod,
+                  let mediaType = MediaType(from: self.apod?.url ?? "") else { return }
+            
+            updateUI(with: apod, mediaType: mediaType)
+        }
     }
     
     /// clearButton Action
@@ -399,6 +422,53 @@ class ViewController: UIViewController, WKNavigationDelegate {
         explanationLabel.text = nil
         loadButton.isHidden = false
     }
+    
+    private func updateUI(with apod: Apod, mediaType: MediaType) -> Void {
+        
+        switch mediaType {
+        case .image(_):
+            Task {
+                let image = try await ImageCacheManager.shared.getImage(with: apod.url ?? "")
+                
+                DispatchQueue.main.async {
+                    /// UI 업데이트 및 타이머 중지
+                    self.apodImageView.image = image
+                    
+                    self.activityIndicator.stopAnimating()
+                    self.timer?.invalidate()
+                    self.timer = nil
+                    
+                    self.titleLabel.text = apod.title
+                    self.dateLabel.text = apod.date
+                    self.explanationLabel.text = apod.explanation
+                }
+            }
+            
+        case .video(let videoURL):
+            DispatchQueue.main.async {
+                /// 비디오면 이미지 뷰를 숨기고 웹 뷰 활성화
+                self.apodWebView.isHidden = false
+                self.apodImageView.isHidden = true
+                
+                guard let absoluteURL: URL = URL(string: videoURL.absoluteString) else { return }
+                let request: URLRequest = URLRequest(url: absoluteURL)
+                
+                self.apodWebView.load(request)
+                
+                self.activityIndicator.stopAnimating()
+                self.timer?.invalidate()
+                self.timer = nil
+                
+                self.titleLabel.text = apod.title
+                self.dateLabel.text = apod.date
+                self.explanationLabel.text = apod.explanation
+            }
+        }
+    }
+}
+
+// MARK: - ViewController+ WKNavigationDelegate
+extension ViewController : WKNavigationDelegate {
     
     // MARK: - WKNavigationDelegate Methods
     /// webView에 로딩 중일 때 인디케이터 활성화
@@ -418,8 +488,6 @@ class ViewController: UIViewController, WKNavigationDelegate {
         self.webViewIndicator.stopAnimating()
         self.webViewIndicator.isHidden = true
     }
-    
-    
 }
 
 #Preview(body: {

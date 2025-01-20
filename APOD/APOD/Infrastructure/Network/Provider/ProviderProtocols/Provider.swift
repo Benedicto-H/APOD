@@ -22,4 +22,7 @@ protocol Provider {
     
     //  data를 얻는 request
     func request(url: URL, completionHandler: @escaping (Result<Data, Error>) -> Void) -> Void  //  단순히 URL을 request()로 주어, Data를 얻는 request()
+    
+    /// `Async/await`
+    func request<R, E>(with endpoint: E) async throws -> R where R: Decodable, R == E.Response, E: RequestResponsable
 }

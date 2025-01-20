@@ -9,6 +9,30 @@ import Foundation
 
 extension Requestable {
     
+    private func makeURL() throws -> URL {
+        
+        //  baseURL + path
+        let fullPath: String = "\(baseURL)\(path)"
+        guard var urlComponents: URLComponents = URLComponents(string: fullPath) else { throw NetworkError.componentsError }
+        
+        //  (baseURL + path) + queryParams
+        var urlQueryItems: [URLQueryItem] = []
+        
+        //  Encodable 타입의 object (JSON) -> Foundation object
+        guard let queryParams: [String : Any] = try queryParams?.toDictionary() else { throw NetworkError.toDictionaryError }
+        
+        //  Dictionary 타입의 Foundation object인 queryParams를 하나씩 추출해서 urlQueryItems에 추가
+        queryParams.forEach { k, v in   //  k: Key, v: Value
+            urlQueryItems.append(URLQueryItem(name: k, value: "\(v)"))
+        }
+        
+        urlComponents.queryItems = !urlQueryItems.isEmpty ? urlQueryItems : nil
+        
+        guard let url: URL = urlComponents.url else { throw NetworkError.componentsError }
+        
+        return url
+    }
+    
     func getURLRequest() throws -> URLRequest {
         
         let url: URL = try makeURL()
@@ -35,29 +59,5 @@ extension Requestable {
         }
         
         return urlRequest
-    }
-    
-    func makeURL() throws -> URL {
-        
-        //  baseURL + path
-        let fullPath: String = "\(baseURL)\(path)"
-        guard var urlComponents: URLComponents = URLComponents(string: fullPath) else { throw NetworkError.componentsError }
-        
-        //  (baseURL + path) + queryParams
-        var urlQueryItems: [URLQueryItem] = []
-        
-        //  Encodable 타입의 object (JSON) -> Foundation object
-        guard let queryParams: [String : Any] = try queryParams?.toDictionary() else { throw NetworkError.toDictionaryError }
-        
-        //  Dictionary 타입의 Foundation object인 queryParams를 하나씩 추출해서 urlQueryItems에 추가
-        queryParams.forEach { k, v in   //  k: Key, v: Value
-            urlQueryItems.append(URLQueryItem(name: k, value: "\(v)"))
-        }
-        
-        urlComponents.queryItems = !urlQueryItems.isEmpty ? urlQueryItems : nil
-        
-        guard let url: URL = urlComponents.url else { throw NetworkError.componentsError }
-        
-        return url
     }
 }

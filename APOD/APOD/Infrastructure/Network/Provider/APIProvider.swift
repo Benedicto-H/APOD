@@ -32,9 +32,7 @@ final class APIProvider: Provider {
                 self.checkError(with: data, response, error) { result in
                     switch result {
                     case .success(let data):
-                        DispatchQueue.main.async {
-                            completionHandler(self.decode(with: data))
-                        }
+                        completionHandler(self.decode(with: data))
                     case .failure(let error):
                         completionHandler(.failure(error))
                     }
@@ -52,6 +50,20 @@ final class APIProvider: Provider {
                 completionHandler(result)
             }
         }.resume()
+    }
+    
+    /// `Async/await`
+    func request<R, E>(with endpoint: E) async throws -> R where R : Decodable, R == E.Response, E : RequestResponsable {
+        
+        do {
+            let request = try endpoint.getURLRequest()
+            
+            let (data, response) = try await session.data(for: request)
+            let safeData = try await self.checkError(with: data, response)
+            return try await self.decode(with: safeData)
+        } catch {
+            throw NetworkError.urlRequestError(error)
+        }
     }
     
     // MARK: - PRIVATE Methods
@@ -93,5 +105,34 @@ final class APIProvider: Provider {
         } catch {
             return .failure(NetworkError.emptyData)
         }
+    }
+    
+    /// `Async/await`
+    private func checkError(with data: Data, _ response: URLResponse) async throws -> Data {
+        
+        guard let response = response as? HTTPURLResponse else { throw NetworkError.unknownError }
+        
+        guard (200..<300) ~= response.statusCode else {
+            
+            switch response.statusCode {
+            case (400..<500):
+                throw NetworkError.httpStatusError(.clientError(NetworkError.HTTPStatusError.ClientError(rawValue: response.statusCode)!))
+            case (500..<600):
+                throw NetworkError.httpStatusError(.serverError(NetworkError.HTTPStatusError.ServerError(rawValue: response.statusCode)!))
+            default:
+                throw NetworkError.unknownError
+            }
+        }
+        
+        guard !data.isEmpty else { throw NetworkError.emptyData }
+        
+        return data
+    }
+    
+    private func decode<T>(with data: Data) async throws -> T where T: Decodable {
+        
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch { throw NetworkError.emptyData }
     }
 }
