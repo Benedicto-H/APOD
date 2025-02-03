@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MarsRoversPhotosDTO: Encodable, APIKeyProvider {
+struct MarsRoversPhotosRequestDTO: Encodable, APIKeyProvider {
     
     let apiKey: String = Bundle.main.apiKey
     let sol: Int

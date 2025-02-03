@@ -11,7 +11,8 @@ import XCTest
 final class APODTests: XCTestCase {
 
     /// sut: System Under Test (즉, test를 할 타입)
-    var sut: Provider?
+    var urlProtocol_SUT: Provider?
+//    var mockURLSession_SUT: Provider?
     
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -20,7 +21,7 @@ final class APODTests: XCTestCase {
         
         // MARK: - URLSessionProtocol을 활용한 경우
         /// Mock 데이터 주입
-//        sut = APIProvider(session: MockURLSession())
+//        mockURLSession_SUT = APIProvider(session: MockURLSession())
         
         // MARK: - URLProtocol을 활용한 경우
         let configuration: URLSessionConfiguration = URLSessionConfiguration.ephemeral
@@ -28,14 +29,15 @@ final class APODTests: XCTestCase {
         
         let urlSession: URLSession = URLSession(configuration: configuration)
         
-        sut = APIProvider(session: urlSession)
+        urlProtocol_SUT = APIProvider(session: urlSession)
     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         /// `tearDownWithError`: 각각의 test 실행이 끝난 후마다 호출되는 메서드, 보통 setUpWithError()에서 설정한 값들을 해제할 때 사용됨
         try super.tearDownWithError()
-        sut = nil
+        urlProtocol_SUT = nil
+//        mockURLSession_SUT = nil
     }
     
     // MARK: - 테스트는 `기대하는 값과 결괏값을 비교하는 과정`으로 이루어짐
@@ -51,10 +53,10 @@ final class APODTests: XCTestCase {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<MarsRoversPhoto> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosDTO(sol: 1000, camera: "fhaz"))
+        let endpoint: Endpoint<MarsRoversPhotoResponseDTO> = APIEndpoints.getMarsRoversPhotos(with: MarsRoversPhotosRequestDTO(sol: 1000, camera: "fhaz"))
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "PhotoResponseMock"),
-              let response: MarsRoversPhoto = try? JSONDecoder().decode(MarsRoversPhoto.self, from: data) else {
+              let response: MarsRoversPhoto = try? JSONDecoder().decode(MarsRoversPhotoResponseDTO.self, from: data).toDomain() else {
             throw NetworkError.emptyData
         }
         
@@ -69,7 +71,7 @@ final class APODTests: XCTestCase {
         }
         
         //  When
-        sut?.request(with: endpoint) { result in
+        urlProtocol_SUT?.request(with: endpoint) { result in
             switch result {
             case .success(let marsRoversPhotoResponse):
                 //  Then
@@ -90,10 +92,10 @@ final class APODTests: XCTestCase {
         
         //  Given
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
+        let endpoint: Endpoint<ApodResponseDTO> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         guard let data: Data = JSONLoader.getDataFromFileURL(fileName: "MockData"),
-              let response: Apod = try? JSONDecoder().decode(Apod.self, from: data) else {
+              let response: Apod = try? JSONDecoder().decode(ApodResponseDTO.self, from: data).toDomain() else {
             throw NetworkError.emptyData
         }
         
@@ -108,7 +110,7 @@ final class APODTests: XCTestCase {
         }
         
         //  When
-        sut?.request(with: endpoint) { result in
+        urlProtocol_SUT?.request(with: endpoint) { result in
             switch result {
             case .success(let apodResponse):
                 //  Then
@@ -129,10 +131,10 @@ final class APODTests: XCTestCase {
     func test_getApod호출시_statusCode가400일때() -> Void {
         
         //  Given
-//        sut = APIProvider(session: MockURLSession(makeRequestFail: true))
+//        mockURLSession_SUT = APIProvider(session: MockURLSession(makeRequestFail: true))
         
         let expectation: XCTestExpectation = XCTestExpectation()
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
+        let endpoint: Endpoint<ApodResponseDTO> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         MockURLProtocol.requestHandler = { request in
             /// `실패:` callback으로 넘겨줄 Response
@@ -145,7 +147,7 @@ final class APODTests: XCTestCase {
         }
         
         //  When
-        sut?.request(with: endpoint) { result in
+        urlProtocol_SUT?.request(with: endpoint) { result in
             switch result {
             case .success(_):
                 XCTFail()

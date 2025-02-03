@@ -26,7 +26,7 @@ final class MockURLSession: URLSessionable {
     // MARK: - [Pr] URLSessionable Methods Impl
     func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
+        let endpoint: Endpoint<ApodResponseDTO> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         /// `성공:` callback으로 넘겨줄 Response
         let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
@@ -57,7 +57,7 @@ final class MockURLSession: URLSessionable {
     
     func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
         
-        let endpoint: Endpoint<Apod> = APIEndpoints.getApod(with: ApodDTO())
+        let endpoint: Endpoint<ApodResponseDTO> = APIEndpoints.getApod(with: ApodRequestDTO())
         
         /// `성공:` callback으로 넘겨줄 Response
         let successResponse: HTTPURLResponse? = HTTPURLResponse(url: try! endpoint.makeURL(),
@@ -84,5 +84,19 @@ final class MockURLSession: URLSessionable {
         
         self.sessionDataTask = sessionDataTask
         return sessionDataTask
+    }
+    
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        
+        let endpoint: Endpoint<ApodResponseDTO> = APIEndpoints.getApod(with: ApodRequestDTO())
+        
+        let successResponse = HTTPURLResponse(url: try! endpoint.makeURL(), statusCode: 200, httpVersion: nil, headerFields: nil)
+//        let failureResponse = HTTPURLResponse(url: try! endpoint.makeURL(), statusCode: 400, httpVersion: nil, headerFields: nil)
+        
+        if makeRequestFail {
+            throw URLError(.badServerResponse)
+        } else {
+            return (endpoint.sampleData!, successResponse!)
+        }
     }
 }

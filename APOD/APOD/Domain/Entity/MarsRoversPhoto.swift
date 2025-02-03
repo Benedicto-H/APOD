@@ -8,6 +8,7 @@
 import Foundation
 
 struct MarsRoversPhoto: Codable {
+    
     var photos: [Photo]?
     
     struct Photo: Codable {

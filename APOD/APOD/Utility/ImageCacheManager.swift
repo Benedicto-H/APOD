@@ -139,7 +139,7 @@ final class ImageCacheManager: ImageCacheManagerDelegate {
     /// `디스크 캐시 검사`
     func checkDiskCache(key: String, completion: @escaping (Result<UIImage, ImageCacheManagerError>) -> Void) -> Void {
         
-        self.getdiskCachedImage(forKey: key) { [weak self] image in
+        self.getDiskCachedImage(forKey: key) { [weak self] image in
             guard let self: ImageCacheManager = self else { return }
             guard let image: UIImage = image, let cost: Int = image.jpegData(compressionQuality: 1.0)?.count else {
                 /// 디스크 캐시 검사 실패
@@ -159,7 +159,7 @@ final class ImageCacheManager: ImageCacheManagerDelegate {
     }
     
     /// `디스크 캐시 이미지 가져오기`
-    private func getdiskCachedImage(forKey key: String, completion: @escaping (UIImage?) -> Void) -> Void {
+    private func getDiskCachedImage(forKey key: String, completion: @escaping (UIImage?) -> Void) -> Void {
         
         let fileURL: URL = diskCacheDirectory.appending(path: key)
         
@@ -272,7 +272,7 @@ extension ImageCacheManager {
         
         print("[디스크 캐시 검사 시작]")
         
-        guard let diskImage = await getdiskCachedImage(from: key),
+        guard let diskImage = await getDiskCachedImage(from: key),
               let cost = diskImage.jpegData(compressionQuality: 1.0)?.count else {
             print("***** 디스크 캐시에 이미지가 없음 *****")
             throw ImageCacheManagerError.invalidDiskCache
@@ -284,7 +284,7 @@ extension ImageCacheManager {
         return diskImage
     }
     
-    private func getdiskCachedImage(from key: String) async -> UIImage? {
+    private func getDiskCachedImage(from key: String) async -> UIImage? {
         
         let fileURL = diskCacheDirectory.appending(path: key)
         

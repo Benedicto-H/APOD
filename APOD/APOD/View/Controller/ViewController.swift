@@ -397,11 +397,11 @@ extension ViewController {
         
         /// `Async/await`
         Task(priority: .utility) {
-            let endpoint = APIEndpoints.getApod(with: ApodDTO())
+            let endpoint = APIEndpoints.getApod(with: ApodRequestDTO())
             
-            let apodResponse = try await APIProvider.shared.request(with: endpoint)
-            print("========== Successfully fetched data ========== \n\(apodResponse) \n")
-            self.apod = apodResponse
+            let apod = try await APIProvider.shared.request(with: endpoint).toDomain()
+            print("========== Successfully fetched data ========== \n\(apod) \n")
+            self.apod = apod
             
             guard let apod = self.apod,
                   let mediaType = MediaType(from: self.apod?.url ?? "") else { return }

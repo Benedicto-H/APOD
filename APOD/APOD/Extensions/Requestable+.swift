@@ -9,7 +9,7 @@ import Foundation
 
 extension Requestable {
     
-    private func makeURL() throws -> URL {
+    func makeURL() throws -> URL {
         
         //  baseURL + path
         let fullPath: String = "\(baseURL)\(path)"
