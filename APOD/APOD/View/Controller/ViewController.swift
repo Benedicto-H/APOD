@@ -27,7 +27,7 @@ final class ViewController: UIViewController {
     
     // MARK: - Views
     /// 인디케이터 뷰
-    private let activityIndicator: UIActivityIndicatorView = {
+    private lazy var activityIndicator: UIActivityIndicatorView = {
         let indicator: UIActivityIndicatorView = UIActivityIndicatorView()
         
         indicator.translatesAutoresizingMaskIntoConstraints = false
@@ -59,7 +59,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 웹 뷰 인디케이터
-    private let webViewIndicator: UIActivityIndicatorView = {
+    private lazy var webViewIndicator: UIActivityIndicatorView = {
         let indicator: UIActivityIndicatorView = UIActivityIndicatorView()
         
         indicator.translatesAutoresizingMaskIntoConstraints = false
@@ -72,7 +72,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 제목 레이블
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label: UILabel = UILabel()
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -84,7 +84,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 날짜 레이블
-    private let dateLabel: UILabel = {
+    private lazy var dateLabel: UILabel = {
         let label: UILabel = UILabel()
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -96,7 +96,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 스크롤 뷰
-    private let scrollView: UIScrollView = {
+    private lazy var scrollView: UIScrollView = {
         let scrollView: UIScrollView = UIScrollView()
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -105,7 +105,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 스크롤 뷰에 올려질 컨텐트 뷰
-    private let contentView: UIView = {
+    private lazy var contentView: UIView = {
         let view: UIView = UIView()
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -114,7 +114,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 설명 레이블
-    private let explanationLabel: UILabel = {
+    private lazy var explanationLabel: UILabel = {
         let label: UILabel = UILabel()
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -158,7 +158,7 @@ final class ViewController: UIViewController {
     }()
     
     /// 시간초 레이블
-    private let timeLabel: UILabel = {
+    private lazy var timeLabel: UILabel = {
         let label: UILabel = UILabel()
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -171,7 +171,7 @@ final class ViewController: UIViewController {
     }()
     
     /// loadButton과 clearButton을 StackView로 관리
-    private var hStackView: UIStackView = {
+    private let hStackView: UIStackView = {
         let stackView: UIStackView = UIStackView()
         
         stackView.translatesAutoresizingMaskIntoConstraints = false
