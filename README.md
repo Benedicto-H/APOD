@@ -129,15 +129,154 @@ case .video(let videoURL):
  
 <br>
 
-## 💡 개선할 점
+## 💡 개선한 점
 - **Cocoa MVC의 문제점을 MVP -> MVVM의 순서로 리팩토링 ✅**
   - MVP: [develop_mvp](https://github.com/Benedicto-H/APOD/tree/develop_mvp)
     
   - MVVM: [develop_mvvm](https://github.com/Benedicto-H/APOD/tree/develop_mvvm)
-  > 현재, 상태관리를 위한 ReactorKit 도입 중 [develop_reactorkit](https://github.com/Benedicto-H/APOD/tree/develop_reactorkit)
+  > 상태관리를 위한 ReactorKit 도입 [develop_reactorkit](https://github.com/Benedicto-H/APOD/tree/develop_reactorkit)
+
+  <br>
   
-- **GCD to Swift Concurrency**
+- **Testable한 URLSession 설계를 목표로, 기본 라이브러리 사용으로 Network Layer 추상화 모듈 구현 ✅**
+  |네트워크 레이어 추상화 다이어그램|
+  |:---:|
+  |<img src="https://github.com/user-attachments/assets/7ae53ee8-2825-440e-9322-8d1de598c37b">|
+
+  - 네트워크의 핵심 모듈
+    - Endpoint: path, queryParameters, bodyParameters 등의 데이터 객체
+    - Provider: URLSession, dataTask()를 이용하여 network 호출이 이루어지는 곳
+
+  - Endpoint는 Requestable, Responsable 프로토콜을 준수하는 상태
+    > Requestable에는 baseURL, path, method, parameters, 등과 같은 정보가 존재
+    
+  - Responsable은 Request하는 곳인, Provider에서 Response 타입을 알아야 Generics를 적용할 수 있는데, Endpoint 객체 하나만 넘기면 따로 request할 때, Response 타입을 넘기지 않아도 되게끔 설계
+
+  ```swift
+  protocol Responsable {
+      associatedtype Response
+  }
+
+  //    Endpoint 객체를 만들때 Response타입을 명시
+  class Endpoint<R>: RequesteResponsable {
+      typealias Response = R
+      ...
+  }
+
+  //    Provider에서 Endpoint객체를 받으면 따로 Response 타입을 넘기지 않아도 되도록 설계
+  protocol Provider {
+      
+      //    R은 Decodable 해야하고, Endpoint의 Response 타입과 일치해야하며 E는 Endpoint 조건을 만족해야한다.
+      func request<R, E>(with endpoint: E, completion: @escaping (Result<R, Error>) -> Void) -> Void where R: Decodable, R == E.Response, E: RequestResponsable
+
+      func request<R, E>(with endpoint: E) async throws -> R where R: Decodable, R == E.Response, E: RequestResponsable
+      ...
+  }
+  ```
   
+  - 사용하는 쪽
+    ```swift
+    struct APIEndpoints {
+        static func getApod(with request: APIKeyProvider) -> Endpoint<ApodResponseDTO> {
+            return Endpoint(baseURL: "https://api.nasa.gov/",
+                        path: "planetary/apod",
+                        method: .get,
+                        queryParams: request,
+                        sampleData: JSONLoader.getDataFromFileURL(fileName: "MockData")
+            )
+        }
+        ...
+    }
+    ```
+    
+    > APIEndpoints를 정의하여 도메인에 종속된 baseURL, path등을 정의하고, 요청 / 응답에 주고받는 데이터를 DTO (Data Transfer Object, 데이터 전송 객체) 개념을 적용하여 Entity와 분리하여 관리
+
+  - URLProtocol을 사용한 네트워크 요청을 가로채기 (실제 네트워크에 의존하지 않는 네트워크 Unit Tests를 위함)
+    ```swift
+    protocol URLSessionable {
+        //    URLSession의 dataTask(with:completion:)를 그대로 정의
+        func dataTask(with request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask
+
+        //    URLSession의 data(for:)를 정의
+        func data(for request: URLRequest) async throws -> (Data, URLResponse)
+    }
+
+    extension URLSession: URLSessionable { }
+    ```
+    
+    ```swift
+    //    ProviderImpl
+    final class APIProvider: Provider {
+    
+        static let shared: APIProvider = APIProvider()
+        private let session: URLSessionable
+    
+        /// URLSession을 주입받음.
+        /// 테스트 시 MockURLSession을 주입.
+        init(session: URLSessionable = URLSession.shared) {
+            self.session = session
+        }
+        ...
+    }
+    ```
+    
+    <br>
+    
+- **GCD to Swift Concurrency ✅**
+  |completionHandler|async / await|
+  |:---:|:---:|
+  |<img src="https://github.com/user-attachments/assets/eb720804-c794-4a00-8371-335123c26891">|<img src="https://github.com/user-attachments/assets/6c42cf95-ccb0-4bc9-afd9-ecdf101e3fc1">|
+
+  기존의 @escaping 키워드를 사용한 함수 타입의 Closure를 통한 비동기 처리의 단점은 코드가 장황하고(verbose), 복잡하고(complex), 부정확(incorrect) 해졌고, 오류처리가 어려웠음.
+  > 클로저가 중첩될수록 (Deeply-nested closures) call-back 지옥에 빠지기도 쉬웠다. (이를 파멸의 피라미드 (Pyramid of Doom) 라고 한다.)
+  
+  이를, Swift 5.5부터 새롭게 도입된 Swift Concurrency의 async / await 키워드를 사용함으로써, 명시적인 스레드 관리 없이 비동기 처리를 구현하고, 코드의 가독성을 향상 (straight-line code로 처리할 수 있게됨)
+
+  - async / await를 사용하는 쪽
+    ```swift
+    //    ViewController.swift
+    Task(priority: .utility) {
+        let endpoint = APIEndpoints.getApod(with: ApodRequestDTO())
+            
+        let apod = try await APIProvider.shared.request(with: endpoint).toDomain()
+        print("========== Successfully fetched data ========== \n\(apod) \n")
+        self.apod = apod
+        
+        guard let apod = self.apod, let mediaType = MediaType(from: self.apod?.url ?? "") else { return }
+        updateUI(with: apod, mediaType: mediaType)
+    }
+
+    //    ImageCacheManager.swift
+    func getImage(with url: String) async throws -> UIImage {
+        
+        guard let url = URL(string: url) else { throw ImageCacheManagerError.invalidURL }
+        
+        let cacheKey = url.lastPathComponent
+        
+        do {
+            print("1. 메모리 캐시 검사")
+            return try await checkMemoryCache(with: cacheKey)
+        } catch {
+            print("1. (실패)")
+            do {
+                print("2. 디스크 캐시 검사")
+                return try await checkDiskCache(with: cacheKey)
+            } catch {
+                print("2. (실패)")
+                print("3. 메모리/디스크 캐시에 각각 데이터 추가 후 반환")
+                return try await Task(priority: .utility) {
+                    return try await saveImage(with: url, key: cacheKey)
+                }.value
+            }
+        }
+    }
+    ```
+
+    > 메서드 시그니처 뒤에 async 키워드로 비동기 함수임을 나타내고, 호출할 때에는 await 키워드로 호출한다. <br>
+    async 메서드는 동시 컨텍스트 (Concurrent Context) 내부 즉, 다른 async 함수 내부 또는 Task 내부에서 사용 가능하다.
+
+    <br>
+    
 - **디스크 캐싱 추가 ✅**
   |Using Memory Cache / Disk Cache|ImageCache Directory|
   |:---:|:---:|
