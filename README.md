@@ -158,7 +158,7 @@ case .video(let videoURL):
   }
 
   //    Endpoint 객체를 만들때 Response타입을 명시
-  class Endpoint<R>: RequesteResponsable {
+  class Endpoint<R>: RequestResponsable {
       typealias Response = R
       ...
   }
